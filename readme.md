@@ -12,7 +12,7 @@ Laman aplikasi: [SQ3R](https://yu-keu.github.io/gamifikasi-ut/)
 
 Laman arsip pelajaran: [Portal Belajar Mandiri UT](https://yhuzued.github.io/sistem-belajar-ut/) (khusus milik saya, Yusuf, sebagai pemilik dan pengguna website)
 
-Laman jadwal: [Target Belajar Mandiri](https://yhuzued.github.io/gamifikasi-ut/jadwal/)
+Laman jadwal: [Target Belajar Mandiri](https://yu-keu.github.io/gamifikasi-ut/jadwal/)
 
 ---
 
