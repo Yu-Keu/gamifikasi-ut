@@ -44,9 +44,9 @@
 >
 
     <!-- POPUP TOAST RPG NOTIFICATION -->
-    <div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
+    <div class="fixed bottom-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none">
         <template x-for="notif in notifications" :key="notif.id">
-            <div class="bg-slate-900/95 text-white border border-indigo-500/30 px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-3 pointer-events-auto max-w-sm animate-fade-in-up">
+            <div class="bg-slate-900/95 text-white border border-indigo-500/30 px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-3 pointer-events-auto max-w-sm animate-fade-in-up mx-auto sm:mx-0 w-full">
                 <div class="bg-indigo-600 p-2 rounded-lg text-amber-300">
                     <i class="fa-solid fa-star"></i>
                 </div>
@@ -57,10 +57,10 @@
 
     <!-- SELEKSI KELAS KARAKTER (NEW LOBBY LOOK) -->
     <div x-show="showClassSelection" class="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-4" x-cloak>
-        <div class="bg-slate-900 border border-slate-800 text-slate-100 p-8 rounded-3xl max-w-3xl w-full shadow-2xl flex flex-col gap-6">
+        <div class="bg-slate-900 border border-slate-800 text-slate-100 p-6 sm:p-8 rounded-2xl sm:rounded-3xl max-w-3xl w-full shadow-2xl flex flex-col gap-6">
             <div class="text-center">
                 <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Wisma Petualang UT</span>
-                <h2 class="text-3xl font-black text-white mt-1">Pilih Guild Karakter Anda</h2>
+                <h2 class="text-2xl sm:text-3xl font-black text-white mt-1">Pilih Guild Karakter Anda</h2>
                 <p class="text-slate-400 text-xs mt-2">Dapatkan bonus pasif eksklusif untuk mendongkrak ketahanan belajar mandiri Anda di Universitas Terbuka!</p>
             </div>
 
@@ -104,74 +104,99 @@
         </div>
     </div>
 
-    <!-- MAIN HUD HEADER -->
+    <!-- MAIN HUD HEADER (RESPONSIF MOBILE OPTIMIZED) -->
     <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-40 transition-all-300 border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
-            <!-- Brand Info -->
-            <div class="flex items-center space-x-3.5">
-                <div class="bg-indigo-600 text-white p-2.5 rounded-2xl font-black text-lg tracking-wider shadow-md transform rotate-2">
-                    UT
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-4 flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4">
+            
+            <!-- Brand Info & Quick Actions Row on Mobile -->
+            <div class="w-full md:w-auto flex justify-between items-center gap-3">
+                <!-- Brand Info -->
+                <div class="flex items-center space-x-2 sm:space-x-3.5">
+                    <div class="bg-indigo-600 text-white p-1.5 px-2.5 sm:p-2.5 rounded-xl sm:rounded-2xl font-black text-sm sm:text-lg tracking-wider shadow-md transform rotate-2">
+                        UT
+                    </div>
+                    <div>
+                        <h1 class="font-black text-sm sm:text-base md:text-xl tracking-tight leading-none flex items-center gap-1.5">
+                            SQ3R Quest Buddy <span class="text-[9px] bg-indigo-500/30 text-indigo-300 px-1.5 py-0.5 rounded-full border border-indigo-500/40 font-bold hidden xs:inline">V2 RPG</span>
+                        </h1>
+                        <p class="text-[10px] sm:text-xs text-slate-400 mt-1 leading-none hidden sm:block">Asisten Belajar Mandiri Berpeta Petualangan</p>
+                        <p class="text-[9px] text-slate-400 mt-0.5 leading-none sm:hidden">Asisten Belajar Mandiri</p>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="font-black text-lg md:text-xl tracking-tight leading-tight flex items-center gap-2">
-                        SQ3R Quest Buddy <span class="text-[10px] bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/40 font-bold">V2 RPG</span>
-                    </h1>
-                    <p class="text-xs text-slate-400">Asisten Belajar Mandiri Berpeta Petualangan</p>
+
+                <!-- Quick Actions (Theme, Settings, Reset) - Inline on mobile, shifted next to logo to save space -->
+                <div class="flex items-center gap-1.5 md:hidden">
+                    <!-- Cycle Theme Button -->
+                    <button @click="cycleTheme()" class="p-2 text-xs bg-slate-950 rounded-lg text-slate-400 hover:text-white border border-slate-800 flex items-center justify-center" title="Ubah Tema Warna">
+                        <template x-if="currentTheme === 'slate'"><i class="fa-solid fa-sun text-amber-400"></i></template>
+                        <template x-if="currentTheme === 'sepia'"><i class="fa-solid fa-book-open text-amber-600"></i></template>
+                        <template x-if="currentTheme === 'dark'"><i class="fa-solid fa-moon text-indigo-400"></i></template>
+                    </button>
+
+                    <!-- API Settings -->
+                    <button @click="showSettings = true" class="p-2 text-xs bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-slate-700 flex items-center justify-center" title="Pengaturan API">
+                        <i class="fa-solid fa-gear text-slate-400"></i>
+                    </button>
+
+                    <!-- Reset -->
+                    <button @click="resetSession()" class="p-2 text-xs bg-rose-950 hover:bg-rose-900 text-rose-300 font-bold rounded-lg border border-rose-800/30 flex items-center justify-center" title="Reset Progres">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
                 </div>
             </div>
 
             <!-- RPG STATUS BAR (INTEGRASI PENUH ALPINEJS) -->
-            <div class="flex flex-wrap items-center justify-center gap-4 bg-slate-950 p-3 rounded-2xl border border-slate-800 shadow-inner">
+            <div class="w-full md:w-auto flex flex-wrap items-center justify-between sm:justify-center gap-2 sm:gap-4 bg-slate-950 p-2 sm:p-3 rounded-xl sm:rounded-2xl border border-slate-800 shadow-inner">
                 <!-- Avatar Class & Level -->
-                <div class="flex items-center gap-2.5 px-1">
-                    <div class="bg-indigo-600 text-white p-2 rounded-xl text-sm font-bold flex items-center justify-center relative shadow-lg">
+                <div class="flex items-center gap-2 sm:gap-2.5 px-1">
+                    <div class="bg-indigo-600 text-white p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center relative shadow-lg">
                         <template x-if="session.rpg.charClass === 'warrior'"><i class="fa-solid fa-shield-halved text-red-300"></i></template>
                         <template x-if="session.rpg.charClass === 'mage'"><i class="fa-solid fa-wand-magic-sparkles text-purple-300"></i></template>
                         <template x-if="session.rpg.charClass === 'rogue'"><i class="fa-solid fa-bolt text-amber-300"></i></template>
-                        <span class="absolute -bottom-1 -right-1 bg-yellow-500 text-slate-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-slate-950" x-text="session.rpg.level">1</span>
+                        <span class="absolute -bottom-1 -right-1 bg-yellow-500 text-slate-950 text-[8px] sm:text-[9px] font-black w-4 sm:w-4.5 h-4 sm:h-4.5 rounded-full flex items-center justify-center border border-slate-950" x-text="session.rpg.level">1</span>
                     </div>
                     <div>
-                        <p class="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider" x-text="session.rpg.charClass || 'No Class'"></p>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-xs font-bold text-slate-200" x-text="`XP ${session.rpg.xp}/${session.rpg.level * 100}`">XP 0/100</span>
+                        <p class="text-[8px] sm:text-[9px] text-slate-400 uppercase font-extrabold tracking-wider leading-none" x-text="session.rpg.charClass || 'No Class'"></p>
+                        <div class="flex items-center gap-1.5 mt-0.5 leading-none">
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-200" x-text="`XP ${session.rpg.xp}/${session.rpg.level * 100}`">XP 0/100</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- XP Bar -->
-                <div class="w-20 md:w-28">
-                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/60">
+                <!-- XP Bar (Tersembunyi di mobile kecil agar hemat ruang) -->
+                <div class="hidden sm:block w-16 md:w-28">
+                    <div class="w-full bg-slate-800 h-1.5 sm:h-2 rounded-full overflow-hidden border border-slate-700/60">
                         <div :style="`width: ${Math.min((session.rpg.xp / (session.rpg.level * 100)) * 100, 100)}%`" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full transition-all duration-500"></div>
                     </div>
                 </div>
 
                 <!-- HP / Focus Shield -->
-                <div class="flex items-center gap-2 pl-3 border-l border-slate-800">
-                    <i class="fa-solid fa-heart-pulse text-red-500 text-xs animate-pulse"></i>
+                <div class="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-heart-pulse text-red-500 text-xs sm:text-sm animate-pulse"></i>
                     <div>
-                        <span class="text-[9px] text-slate-400 block font-bold leading-none">SHIELD</span>
+                        <span class="text-[8px] text-slate-400 block font-bold leading-none hidden xs:block">SHIELD</span>
                         <span class="text-xs font-extrabold text-slate-200" x-text="`${session.rpg.hp}%`">100%</span>
                     </div>
                 </div>
 
                 <!-- Gold -->
-                <div class="flex items-center gap-2 pl-3 border-l border-slate-800">
-                    <i class="fa-solid fa-coins text-yellow-500 text-xs"></i>
+                <div class="flex items-center gap-1.5 pl-2 sm:pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-coins text-yellow-500 text-xs sm:text-sm"></i>
                     <div>
-                        <span class="text-[9px] text-slate-400 block font-bold leading-none">GOLD</span>
+                        <span class="text-[8px] text-slate-400 block font-bold leading-none hidden xs:block">GOLD</span>
                         <span class="text-xs font-black text-yellow-400" x-text="session.rpg.gold">50</span>
                     </div>
                 </div>
 
                 <!-- Streak -->
-                <div class="flex items-center gap-1.5 pl-3 border-l border-slate-800">
-                    <i class="fa-solid fa-fire text-orange-500 text-xs"></i>
+                <div class="flex items-center gap-1 sm:gap-1.5 pl-2 sm:pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-fire text-orange-500 text-xs sm:text-sm"></i>
                     <span class="text-xs font-black text-orange-400" x-text="`${session.rpg.streak} H`">&bull;</span>
                 </div>
             </div>
             
-            <!-- Quick Actions & Theme Toggles -->
-            <div class="flex items-center flex-wrap gap-2.5">
+            <!-- Quick Actions & Theme Toggles (Hanya tampil di Desktop) -->
+            <div class="hidden md:flex items-center flex-wrap gap-2.5">
                 <!-- Theme Controller -->
                 <div class="flex items-center bg-slate-950 rounded-xl p-1 text-xs border border-slate-800">
                     <button @click="setTheme('slate')" :class="currentTheme === 'slate' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1.5 rounded-lg font-semibold transition-all-300">Light</button>
@@ -195,7 +220,7 @@
     <!-- BANNER NOTIFIKASI API -->
     <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 mt-4" x-cloak>
         <template x-if="!settings.apiKey">
-            <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start text-xs sm:text-sm text-amber-700 dark:text-amber-300 gap-3">
+            <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl sm:rounded-2xl flex items-start text-xs sm:text-sm text-amber-700 dark:text-amber-300 gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-lg text-amber-500 mt-0.5"></i>
                 <div>
                     <strong>Konfigurasi API Diperlukan:</strong> Sistem AI belum dapat diaktifkan. Klik tombol 
@@ -207,34 +232,34 @@
     </div>
 
     <!-- MAIN APP CONTAINER -->
-    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <main class="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 py-4 sm:py-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         <!-- WORKSPACE AREA (SQ3R QUEST LINE) -->
         <section class="lg:col-span-8 flex flex-col gap-6">
             
             <!-- QUEST TIMELINE (PROGRESS MAP) -->
-            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-4">
+            <div :class="getThemeCardClass()" class="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-4">
                 <div>
                     <h3 class="font-extrabold text-xs uppercase tracking-widest opacity-75 flex items-center gap-2">
                         <i class="fa-solid fa-compass text-indigo-500"></i> PETA QUEST BELAJAR (SQ3R)
                     </h3>
-                    <p class="text-[11px] opacity-60 mt-0.5">Selesaikan setiap langkah untuk membuka naskah pemahaman berikutnya.</p>
+                    <p class="text-[10px] sm:text-[11px] opacity-60 mt-0.5">Selesaikan setiap langkah untuk membuka naskah pemahaman berikutnya.</p>
                 </div>
 
                 <!-- Quest Road Steps -->
-                <div class="grid grid-cols-5 gap-2 relative">
+                <div class="grid grid-cols-5 gap-1.5 sm:gap-2 relative">
                     <template x-for="step in [1,2,3,4,5]">
                         <button 
                             @click="changeStep(step)"
                             :disabled="!isStepUnlocked(step)"
                             :class="getQuestStepClass(step)"
-                            class="py-3 px-1.5 rounded-2xl text-xs transition-all-300 flex flex-col items-center justify-center border text-center shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                            class="py-2.5 sm:py-3 px-1 rounded-xl sm:rounded-2xl text-xs transition-all-300 flex flex-col items-center justify-center border text-center shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                            <span class="text-sm font-black" x-text="['S', 'Q', 'R1', 'R2', 'R3'][step - 1]"></span>
-                            <span class="text-[9px] font-bold tracking-wide mt-0.5" x-text="['Survey', 'Question', 'Read', 'Recite', 'Review'][step - 1]"></span>
+                            <span class="text-sm sm:text-base font-black" x-text="['S', 'Q', 'R1', 'R2', 'R3'][step - 1]"></span>
+                            <span class="hidden md:inline text-[9px] font-bold tracking-wide mt-0.5" x-text="['Survey', 'Question', 'Read', 'Recite', 'Review'][step - 1]"></span>
                             
                             <!-- Unlocked Indicator dot -->
-                            <div class="mt-1.5 flex gap-1 items-center">
+                            <div class="mt-1 flex gap-1 items-center">
                                 <span class="w-1.5 h-1.5 rounded-full" :class="isStepCompleted(step) ? 'bg-emerald-500' : 'bg-slate-400'"></span>
                             </div>
                         </button>
@@ -242,7 +267,7 @@
                 </div>
 
                 <!-- Step Description Tooltip -->
-                <div class="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl text-xs leading-relaxed">
+                <div class="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl sm:rounded-2xl text-xs leading-relaxed">
                     <strong class="text-indigo-500 dark:text-indigo-300 block mb-0.5">Misi Saat Ini:</strong>
                     <span class="opacity-75" x-text="getStepDescription()"></span>
                 </div>
@@ -256,11 +281,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         
                         <!-- Inputs -->
-                        <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
+                        <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
                             <div class="flex flex-col gap-4">
                                 <div>
-                                    <h2 class="text-xl font-black flex items-center gap-2">
-                                        <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">S</span> SURVEY THE BMP
+                                    <h2 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                                        <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-bold">S</span> SURVEY THE BMP
                                     </h2>
                                     <p class="opacity-70 text-xs mt-1.5">Masukkan topik Buku Materi Pokok (BMP) UT Anda untuk menganalisis garis besar materi.</p>
                                 </div>
@@ -281,14 +306,14 @@
                                 </div>
                             </div>
 
-                            <button @click="generateSurvey()" :disabled="isLoading || !session.courseName || !session.moduleTopic" class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                            <button @click="generateSurvey()" :disabled="isLoading || !session.courseName || !session.moduleTopic" class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
                                 <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
                                 <i class="fa-solid fa-wand-magic-sparkles" x-show="!isLoading"></i> Ekspedisi Analisis Survei (AI)
                             </button>
                         </div>
 
                         <!-- Results / Reference Panel -->
-                        <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
+                        <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
                             <div class="border-b pb-3 flex justify-between items-center">
                                 <h3 class="font-bold text-xs uppercase tracking-widest opacity-75 flex items-center gap-2">
                                     <i class="fa-solid fa-book-open"></i> Hasil Survey Rujukan
@@ -324,16 +349,16 @@
 
                 <!-- STEP 2: QUESTION -->
                 <div x-show="currentStep === 2" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
-                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                    <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-5">
                         <div>
-                            <h2 class="text-xl font-black flex items-center gap-2">
-                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">Q</span> QUESTIONING THE ENEMY
+                            <h2 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-bold">Q</span> QUESTIONING THE ENEMY
                             </h2>
                             <p class="opacity-70 text-xs mt-1.5">Rumuskan pertanyaan-pertanyaan pemandu belajar agar proses membaca Anda memiliki arah sasaran yang mutlak.</p>
                         </div>
 
                         <!-- Mini Survey Snapshot -->
-                        <div x-show="session.surveyResult" class="p-3.5 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl text-xs">
+                        <div x-show="session.surveyResult" class="p-3.5 bg-indigo-500/5 border border-indigo-500/10 rounded-xl sm:rounded-2xl text-xs">
                             <span class="font-bold text-indigo-600 dark:text-indigo-400 block mb-1">Rujukan Survey:</span>
                             <div class="max-h-16 overflow-y-auto opacity-70 leading-relaxed" x-html="renderMarkdown(session.surveyResult.substring(0, 180) + '...')"></div>
                         </div>
@@ -341,9 +366,9 @@
                         <!-- Questions Area -->
                         <div class="space-y-3">
                             <template x-if="session.questions.length === 0 && !isLoading">
-                                <div class="text-center py-8 border border-dashed rounded-2xl border-slate-300 dark:border-slate-800 opacity-60">
+                                <div class="text-center py-8 border border-dashed rounded-xl sm:rounded-2xl border-slate-300 dark:border-slate-800 opacity-60">
                                     <i class="fa-solid fa-clipboard-question text-3xl mb-2 text-slate-400"></i>
-                                    <p class="text-xs">Gunakan AI di bawah untuk merumuskan daftar sasaran pertanyaan pemandu secara otomatis.</p>
+                                    <p class="text-xs mx-auto max-w-xs px-4">Gunakan AI di bawah untuk merumuskan daftar sasaran pertanyaan pemandu secara otomatis.</p>
                                 </div>
                             </template>
 
@@ -356,7 +381,7 @@
 
                             <div class="space-y-2.5" x-show="session.questions.length > 0">
                                 <template x-for="(q, index) in session.questions" :key="q.id">
-                                    <div class="flex items-center gap-3 p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl transition-all">
+                                    <div class="flex items-center gap-3 p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-xl sm:rounded-2xl transition-all">
                                         <span class="font-black text-xs text-indigo-600 dark:text-indigo-300 bg-indigo-500/20 w-6 h-6 flex items-center justify-center rounded-full" x-text="index+1"></span>
                                         <input type="text" x-model="q.text" :class="getThemeInputClass()" class="flex-1 bg-transparent border-none focus:ring-0 p-1 text-xs font-semibold">
                                         <button @click="removeQuestion(index)" class="text-slate-400 hover:text-rose-500 p-1" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
@@ -374,12 +399,12 @@
 
                         <!-- Footer Actions -->
                         <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <button @click="generateQuestions()" :disabled="isLoading || !session.surveyResult" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center gap-2">
+                            <button @click="generateQuestions()" :disabled="isLoading || !session.surveyResult" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs transition-all flex items-center justify-center gap-2">
                                 <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
                                 <i class="fa-solid fa-brain" x-show="!isLoading"></i> Rumuskan Pertanyaan (AI)
                             </button>
                             
-                            <button x-show="session.questions.length > 0" @click="changeStep(3)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all">
+                            <button x-show="session.questions.length > 0" @click="changeStep(3)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-xl sm:rounded-2xl text-xs flex items-center justify-center gap-2 transition-all">
                                 Mulai Pertempuran Baca (R1) <i class="fa-solid fa-sword"></i>
                             </button>
                         </div>
@@ -388,17 +413,17 @@
 
                 <!-- STEP 3: READ (POMODORO & COMBAT GRAPHICS) -->
                 <div x-show="currentStep === 3" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
-                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                    <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-5">
                         <div class="flex justify-between items-center flex-wrap gap-4">
                             <div>
-                                <h2 class="text-xl font-black flex items-center gap-2">
-                                    <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R1</span> ACTIVE READING (COMBAT)
+                                <h2 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                                    <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-bold">R1</span> ACTIVE READING (COMBAT)
                                </h2>
                                 <p class="opacity-70 text-xs mt-1.5">Buka BMP UT Anda, temukan jawaban untuk target pertanyaan yang sudah ditandai.</p>
                             </div>
 
                             <!-- Countdown Timer -->
-                            <div class="bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3.5 text-xs text-white">
+                            <div class="bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-xl sm:rounded-2xl flex items-center gap-3.5 text-xs text-white">
                                 <span class="font-extrabold text-slate-400 tracking-wider">TIMER:</span>
                                 <span class="font-mono font-black text-indigo-400 text-base" x-text="formatTime(timerSeconds)">25:00</span>
                                 <button @click="toggleTimer()" class="text-slate-300 hover:text-white"><i class="fa-solid" :class="timerRunning ? 'fa-pause' : 'fa-play'"></i></button>
@@ -407,7 +432,7 @@
                         </div>
 
                         <!-- VISUAL RPG COMBAT INTERFACES -->
-                        <div class="border border-slate-800 bg-slate-950 p-5 rounded-3xl grid grid-cols-1 md:grid-cols-12 gap-5 items-center relative overflow-hidden">
+                        <div class="border border-slate-800 bg-slate-950 p-4 sm:p-5 rounded-2xl sm:rounded-3xl grid grid-cols-1 md:grid-cols-12 gap-5 items-center relative overflow-hidden">
                             
                             <!-- Fighter Info (Left) -->
                             <div class="md:col-span-4 flex flex-col items-center text-center gap-2 border-b md:border-b-0 md:border-r border-slate-800 pb-4 md:pb-0 md:pr-4">
@@ -423,7 +448,7 @@
                             </div>
 
                             <!-- VS Combat State (Middle) -->
-                            <div class="md:col-span-4 flex flex-col items-center gap-2">
+                            <div class="md:col-span-4 flex flex-col items-center gap-2 border-b md:border-b-0 border-slate-800 pb-4 md:pb-0">
                                 <span class="text-[10px] text-slate-500 font-black tracking-widest">PERTEMPURAN AKTIF</span>
                                 <div class="text-xs px-3 py-1 bg-red-950/80 border border-red-800/40 text-red-400 rounded-full font-black animate-pulse" x-text="timerRunning ? 'CRITICAL DAMAGE ACTIVE' : 'MENUNGGU FOKUS'"></div>
                             </div>
@@ -445,7 +470,7 @@
                         </div>
 
                         <!-- COMBAT LOG CONSOLE -->
-                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4.5 font-mono text-[11px] leading-relaxed text-indigo-300">
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 font-mono text-[11px] leading-relaxed text-indigo-300">
                             <span class="text-slate-500 block mb-2 font-bold uppercase tracking-wider text-[9px] border-b border-slate-900 pb-1.5"><i class="fa-solid fa-terminal mr-1"></i> LOG PERTEMPURAN AKADEMIS</span>
                             <div class="space-y-1 max-h-24 overflow-y-auto pr-1" id="combat-log-console">
                                 <template x-for="log in combatLogs">
@@ -470,7 +495,7 @@
                         <!-- Footer Control -->
                         <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex justify-between items-center flex-wrap gap-3">
                             <span class="text-[10px] opacity-65">Isi poin coretan Anda pada panel kanan untuk menyimpan hasil bacaan secara instan!</span>
-                            <button @click="changeStep(4)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2">
+                            <button @click="changeStep(4)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-xl sm:rounded-2xl text-xs flex items-center justify-center gap-2">
                                 Lanjut Menulis Jawaban (R2) <i class="fa-solid fa-feather-pointed"></i>
                             </button>
                         </div>
@@ -479,10 +504,10 @@
 
                 <!-- STEP 4: RECITE -->
                 <div x-show="currentStep === 4" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
-                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                    <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-5">
                         <div>
-                            <h2 class="text-xl font-black flex items-center gap-2">
-                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R2</span> RECITE THE TRUTH
+                            <h2 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-bold">R2</span> RECITE THE TRUTH
                             </h2>
                             <p class="opacity-70 text-xs mt-1.5">Tuliskan pemahaman yang berhasil Anda serap dari ingatan kognitif Anda tanpa melihat buku, lalu evaluasi ketepatannya bersama AI.</p>
                         </div>
@@ -512,11 +537,11 @@
 
                         <!-- Footer Control -->
                         <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <button @click="evaluateAnswers()" :disabled="isLoading || session.questions.length === 0" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                            <button @click="evaluateAnswers()" :disabled="isLoading || session.questions.length === 0" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
                                 <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
                                 <i class="fa-solid fa-wand-magic-sparkles" x-show="!isLoading"></i> Evaluasi Jawaban (Tutor AI)
                             </button>
-                            <button @click="changeStep(5)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+                            <button @click="changeStep(5)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-xl sm:rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
                                 Lanjut Evaluasi Akhir (R3) <i class="fa-solid fa-scroll"></i>
                             </button>
                         </div>
@@ -525,10 +550,10 @@
 
                 <!-- STEP 5: REVIEW -->
                 <div x-show="currentStep === 5" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
-                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                    <div :class="getThemeCardClass()" class="p-4 sm:p-6 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-5">
                         <div>
-                            <h2 class="text-xl font-black flex items-center gap-2">
-                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R3</span> REVIEW AND CONQUER
+                            <h2 class="text-lg sm:text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl font-bold">R3</span> REVIEW AND CONQUER
                             </h2>
                             <p class="opacity-70 text-xs mt-1.5">Uji pemahaman puncak Anda melalui simulasi kuis standar berpikir tingkat tinggi (HOTS).</p>
                         </div>
@@ -595,7 +620,7 @@
         <aside class="lg:col-span-4 flex flex-col gap-6">
             
             <!-- CORETAN CATATAN BELAJAR -->
-            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-3">
+            <div :class="getThemeCardClass()" class="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-3">
                 <div class="flex justify-between items-center">
                     <label class="font-extrabold text-xs text-slate-700 dark:text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-feather text-indigo-500"></i> CORETAN CATATAN BELAJAR (R1)
@@ -609,7 +634,7 @@
             </div>
 
             <!-- BOUNTY BOARD (QUEST & SHOP) -->
-            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-4">
+            <div :class="getThemeCardClass()" class="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-4">
                 <div class="border-b border-slate-200/60 dark:border-slate-800 pb-3">
                     <h3 class="font-extrabold text-xs uppercase tracking-widest flex items-center gap-2">
                         <i class="fa-solid fa-scroll text-yellow-500"></i> PAPAN MISI BELAJAR
@@ -659,7 +684,7 @@
                     <div class="flex flex-wrap gap-1">
                         <template x-for="buff in session.rpg.activeBuffs">
                             <span class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-2.5 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1">
-                                <i class="fa-solid fa-bolt"></i> <span x-text="buff === 'focus_elixir' ? 'Bonus XP 1.5x Aktif' : buff"></span>
+                                <i class="fa-solid fa-bolt"></i> <span x-text="buff === 'focus_elixir' ? 'Bonus XP 1.5x' : buff"></span>
                             </span>
                         </template>
                     </div>
@@ -667,7 +692,7 @@
             </div>
 
             <!-- DUNGEON BMP UT (Modul Progress Checklist) -->
-            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-3">
+            <div :class="getThemeCardClass()" class="p-4 sm:p-5 rounded-2xl sm:rounded-3xl border transition-all-300 flex flex-col gap-3">
                 <div>
                     <h3 class="font-extrabold text-xs uppercase tracking-widest flex items-center gap-2">
                         <i class="fa-solid fa-map-location-dot text-indigo-500"></i> PETA DUNGEON BMP UT
@@ -689,7 +714,7 @@
             </div>
 
             <!-- EXPORT REPORT ACTION -->
-            <button @click="exportToHtml()" :disabled="!session.surveyResult" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+            <button @click="exportToHtml()" :disabled="!session.surveyResult" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl sm:rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
                 <i class="fa-solid fa-file-export"></i> Ekspor Laporan Belajar (.HTML)
             </button>
 
@@ -698,35 +723,38 @@
 
     <!-- IMMERSIVE FOCUS READING MODAL -->
     <div x-show="focusReadingOpen" class="fixed inset-0 z-50 overflow-y-auto flex flex-col transition-all-300" :class="focusThemeClass()" x-cloak>
-        <div class="border-b px-6 py-4 flex justify-between items-center sticky top-0 backdrop-blur-md z-10" :class="focusToolbarClass()">
-            <div class="flex items-center gap-3">
+        <div class="border-b px-4 sm:px-6 py-3 sm:py-4 flex flex-col sm:flex-row gap-3 justify-between items-center sticky top-0 backdrop-blur-md z-10" :class="focusToolbarClass()">
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
                 <span class="text-xs font-bold uppercase tracking-wider opacity-60">Mode Fokus Membaca</span>
                 <span class="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold max-w-[200px] truncate" x-text="session.moduleTopic || 'Materi UT'"></span>
             </div>
             
-            <div class="flex items-center gap-3">
-                <button @click="setTheme('slate')" :class="currentTheme === 'slate' ? 'ring-2 ring-indigo-500' : ''" class="w-6 h-6 rounded-full bg-slate-100 border border-slate-300" title="Slate Light"></button>
-                <button @click="setTheme('sepia')" :class="currentTheme === 'sepia' ? 'ring-2 ring-amber-600' : ''" class="w-6 h-6 rounded-full bg-[#fdfaf2] border border-[#dfd0b0]" title="Warm Sepia"></button>
-                <button @click="setTheme('dark')" :class="currentTheme === 'dark' ? 'ring-2 ring-indigo-400' : ''" class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700" title="Night Dark"></button>
+            <div class="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto">
+                <div class="flex items-center gap-2">
+                    <button @click="setTheme('slate')" :class="currentTheme === 'slate' ? 'ring-2 ring-indigo-500' : ''" class="w-6 h-6 rounded-full bg-slate-100 border border-slate-300" title="Slate Light"></button>
+                    <button @click="setTheme('sepia')" :class="currentTheme === 'sepia' ? 'ring-2 ring-amber-600' : ''" class="w-6 h-6 rounded-full bg-[#fdfaf2] border border-[#dfd0b0]" title="Warm Sepia"></button>
+                    <button @click="setTheme('dark')" :class="currentTheme === 'dark' ? 'ring-2 ring-indigo-400' : ''" class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700" title="Night Dark"></button>
+                </div>
                 
-                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
                 
-                <button @click="toggleFont()" class="px-3 py-1.5 text-xs rounded-lg border hover:bg-slate-100 dark:hover:bg-slate-800 font-bold transition" x-text="readingFont === 'serif' ? 'Gunakan Sans-Serif' : 'Gunakan Serif'"></button>
+                <div class="flex items-center gap-1.5">
+                    <button @click="toggleFont()" class="px-2.5 py-1.5 text-[10px] sm:text-xs rounded-lg border hover:bg-slate-100 dark:hover:bg-slate-800 font-bold transition" x-text="readingFont === 'serif' ? 'Sans-Serif' : 'Serif'"></button>
+                    <button @click="decreaseFontSize()" class="px-2 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A-</button>
+                    <button @click="increaseFontSize()" class="px-2 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A+</button>
+                </div>
                 
-                <button @click="decreaseFontSize()" class="px-2.5 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A-</button>
-                <button @click="increaseFontSize()" class="px-2.5 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A+</button>
+                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700"></div>
                 
-                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
-                
-                <button @click="closeFocusReading()" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-500 transition shadow-sm">
+                <button @click="closeFocusReading()" class="px-3.5 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-500 transition shadow-sm">
                     Tutup
                 </button>
             </div>
         </div>
 
-        <div class="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+        <div class="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 py-8 sm:py-12">
             <article :class="[fontSizes[fontSizeIdx], readingFont === 'serif' ? 'font-serif' : 'font-sans']" class="prose dark:prose-invert max-w-none leading-relaxed">
-                <h1 class="text-3xl font-black tracking-tight border-b pb-4 dark:border-slate-800" x-text="session.moduleTopic || 'Materi Belajar'"></h1>
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight border-b pb-4 dark:border-slate-800" x-text="session.moduleTopic || 'Materi Belajar'"></h1>
                 <p class="text-xs uppercase font-bold tracking-wider opacity-60 mt-3" x-text="session.courseName || 'Mata Kuliah UT'"></p>
                 
                 <div class="mt-8 text-slate-800 dark:text-slate-100" x-html="renderMarkdown(session.surveyResult || '### Belum ada rujukan survei.\nSilakan lakukan langkah **Survey (1)** terlebih dahulu.')"></div>
@@ -736,7 +764,7 @@
 
     <!-- API SETTINGS MODAL -->
     <div x-show="showSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
-        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-250 dark:border-slate-800 flex flex-col overflow-hidden transition-all-300" @click.away="showSettings = false">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-250 dark:border-slate-800 flex flex-col overflow-hidden transition-all-300" @click.away="showSettings = false">
             <div class="bg-indigo-900 text-white p-5 flex justify-between items-center">
                 <h3 class="font-extrabold text-sm tracking-wide"><i class="fa-solid fa-shield-halved"></i> Konfigurasi API</h3>
                 <button @click="showSettings = false" class="text-slate-300 hover:text-white transition-colors text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -973,6 +1001,13 @@
                     localStorage.setItem('ut_sq3r_theme_v8_rpg', theme);
                 },
 
+                // SINGLE BUTTON THEME CYCLER FOR MOBILE DEVICES
+                cycleTheme() {
+                    if (this.currentTheme === 'slate') this.setTheme('sepia');
+                    else if (this.currentTheme === 'sepia') this.setTheme('dark');
+                    else this.setTheme('slate');
+                },
+
                 // IMMERSIVE READING ACCENTS
                 focusThemeClass() {
                     if (this.currentTheme === 'dark') return 'bg-slate-950 text-slate-100';
@@ -1046,7 +1081,7 @@
 
                 getStepDescription() {
                     const desc = [
-                        "Survey (S): Masukkan poin modul BMP UT Anda untuk merumuskan gambaran umum wilayah pemikiran kognitif.",
+                        "Survey (S): Masukkan poin draf modul UT Anda untuk merumuskan gambaran umum wilayah pemikiran kognitif.",
                         "Question (Q): Ubah sub-judul rujukan menjadi pertanyaan penuntun kritis sasaran penyerangan fokus.",
                         "Read (R1): Lakukan eksplorasi membaca mendalam pada BMP Anda, jalankan Pomodoro untuk menghancurkan Demon Prokrastinasi.",
                         "Recite (R2): Tuangkan pemahaman secara eksplisit dari memori Anda untuk dievaluasi secara konstruktif oleh Tutor AI.",
@@ -1075,7 +1110,7 @@
                     if (this.session.rpg.activeBuffs.includes('focus_elixir')) {
                         finalAmount = Math.round(finalAmount * 1.5);
                         this.session.rpg.activeBuffs = this.session.rpg.activeBuffs.filter(b => b !== 'focus_elixir');
-                        this.addNotification("✨ Ramuan Fokus digunakan: Pengali 1.5x XP diaplikasikan!");
+                        this.addNotification("✨ Ramuan Fokus digunakan: Pengali 1.5x XP!");
                     }
 
                     this.session.rpg.xp += finalAmount;
@@ -1086,7 +1121,7 @@
                         this.session.rpg.level += 1;
                         this.session.rpg.hp = Math.min(this.session.rpg.hp + 25, 100); 
                         xpNeeded = this.session.rpg.level * 100;
-                        this.addNotification(`🎉 LEVEL UP! Level Akademik Anda naik ke Level ${this.session.rpg.level}! Fokus Shield dipulihkan.`);
+                        this.addNotification(`🎉 LEVEL UP! Naik ke Level ${this.session.rpg.level}! Fokus Shield dipulihkan.`);
                     }
                     this.saveSession();
                 },
@@ -1116,7 +1151,7 @@
                     this.session.rpg.gold -= cost;
                     if (itemId === 'focus_elixir') {
                         this.session.rpg.activeBuffs.push('focus_elixir');
-                        this.addNotification("🧪 Berhasil meminum Ramuan Fokus! Aktivitas Anda berikutnya mendapatkan pengali 1.5x XP.");
+                        this.addNotification("🧪 Berhasil meminum Ramuan Fokus! Aktivitas berikutnya mendapat pengali 1.5x XP.");
                     } else if (itemId === 'shield') {
                         this.session.rpg.hp = 100;
                         this.addNotification("🛡️ Berhasil membeli Penjaga Shield! Stamina belajar pulih 100%.");
@@ -1129,7 +1164,7 @@
                     if (this.session.rpg.conqueredModules[index]) {
                         this.addXP(100);
                         this.addGold(30);
-                        this.addNotification(`🏆 Dungeon Modul ${index + 1} Selesai Dikuasai! +100 XP & +30 Gold!`);
+                        this.addNotification(`🏆 Dungeon Modul ${index + 1} Dikuasai! +100 XP & +30 Gold!`);
                     } else {
                         this.session.rpg.xp = Math.max(0, this.session.rpg.xp - 100);
                         this.session.rpg.gold = Math.max(0, this.session.rpg.gold - 30);
@@ -1570,7 +1605,7 @@ Struktur format JSON:
                     return Math.round((correctCount / this.session.quiz.length) * 100);
                 },
 
-                // EXPORT SYSTEM & REPORT COMPILATION (MOBILE OPTIMIZED RENDERING)
+                // EXPORT SYSTEM & REPORT COMPILATION
                 exportToHtml() {
                     const escapeHtml = (str) => {
                         if (!str) return '';
