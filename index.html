@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQ3R UT Quest Buddy - Edisi RPG Akademis</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    
+    <!-- Marked.js CDN untuk Markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- KaTeX CSS & JS untuk Render Formula Matematika -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked-katex-extension@5.1.2/lib/index.umd.js"></script>
+    
+    <!-- Alpine.js CDN untuk State Management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- FontAwesome Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .transition-all-300 { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        /* Animasi Khas Game Retro */
+        @keyframes subtle-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-2px, 1px) rotate(-0.5deg); }
+            40% { transform: translate(1px, -1px) rotate(0.5deg); }
+            60% { transform: translate(-1px, 2px) rotate(0deg); }
+            80% { transform: translate(2px, 1px) rotate(0.5deg); }
+        }
+        .boss-active { animation: subtle-shake 0.4s ease-in-out infinite; }
+    </style>
+</head>
+<body 
+    :class="getThemeBodyClass()" 
+    class="font-sans min-h-screen flex flex-col transition-all-300 antialiased" 
+    x-data="studyApp()" 
+    x-init="initApp()"
+>
+
+    <!-- POPUP TOAST RPG NOTIFICATION -->
+    <div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none">
+        <template x-for="notif in notifications" :key="notif.id">
+            <div class="bg-slate-900/95 text-white border border-indigo-500/30 px-4 py-3 rounded-xl shadow-xl text-xs flex items-center gap-3 pointer-events-auto max-w-sm animate-fade-in-up">
+                <div class="bg-indigo-600 p-2 rounded-lg text-amber-300">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <span x-text="notif.message" class="font-semibold leading-snug"></span>
+            </div>
+        </template>
+    </div>
+
+    <!-- SELEKSI KELAS KARAKTER (NEW LOBBY LOOK) -->
+    <div x-show="showClassSelection" class="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-4" x-cloak>
+        <div class="bg-slate-900 border border-slate-800 text-slate-100 p-8 rounded-3xl max-w-3xl w-full shadow-2xl flex flex-col gap-6">
+            <div class="text-center">
+                <span class="text-xs font-bold text-indigo-400 uppercase tracking-widest">Wisma Petualang UT</span>
+                <h2 class="text-3xl font-black text-white mt-1">Pilih Guild Karakter Anda</h2>
+                <p class="text-slate-400 text-xs mt-2">Dapatkan bonus pasif eksklusif untuk mendongkrak ketahanan belajar mandiri Anda di Universitas Terbuka!</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <!-- Warrior Card -->
+                <div @click="selectClass('warrior')" class="border border-slate-800 bg-slate-900/50 hover:border-red-500 hover:bg-slate-800/50 p-6 rounded-2xl cursor-pointer transition-all-300 flex flex-col items-center text-center gap-4 group">
+                    <div class="bg-red-500/10 text-red-400 p-5 rounded-full text-4xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-white text-base">Kesatria Pomodoro</h3>
+                        <p class="text-xs text-slate-400 mt-1">Fokus pada ketahanan membaca aktif jangka panjang.</p>
+                    </div>
+                    <span class="text-[10px] bg-red-950/80 text-red-300 px-3 py-1 rounded-full border border-red-800/40 font-bold mt-auto">Pasif: +20% XP Fokus Baca (R1)</span>
+                </div>
+
+                <!-- Mage Card -->
+                <div @click="selectClass('mage')" class="border border-slate-800 bg-slate-900/50 hover:border-purple-500 hover:bg-slate-800/50 p-6 rounded-2xl cursor-pointer transition-all-300 flex flex-col items-center text-center gap-4 group">
+                    <div class="bg-purple-500/10 text-purple-400 p-5 rounded-full text-4xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-white text-base">Penyihir Kritis</h3>
+                        <p class="text-xs text-slate-400 mt-1">Tajam dalam analisis survei dan penyusunan nalar.</p>
+                    </div>
+                    <span class="text-[10px] bg-purple-950/80 text-purple-300 px-3 py-1 rounded-full border border-purple-800/40 font-bold mt-auto">Pasif: +20% XP Tanya Jawab (S & R2)</span>
+                </div>
+
+                <!-- Rogue Card -->
+                <div @click="selectClass('rogue')" class="border border-slate-800 bg-slate-900/50 hover:border-amber-500 hover:bg-slate-800/50 p-6 rounded-2xl cursor-pointer transition-all-300 flex flex-col items-center text-center gap-4 group">
+                    <div class="bg-amber-500/10 text-amber-400 p-5 rounded-full text-4xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-white text-base">Pencuri Skor</h3>
+                        <p class="text-xs text-slate-400 mt-1">Tangkas menembus pertahanan soal kuis HOTS.</p>
+                    </div>
+                    <span class="text-[10px] bg-amber-950/80 text-amber-300 px-3 py-1 rounded-full border border-amber-800/40 font-bold mt-auto">Pasif: +20% XP Kuis Cepat (R3)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN HUD HEADER -->
+    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-40 transition-all-300 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+            <!-- Brand Info -->
+            <div class="flex items-center space-x-3.5">
+                <div class="bg-indigo-600 text-white p-2.5 rounded-2xl font-black text-lg tracking-wider shadow-md transform rotate-2">
+                    UT
+                </div>
+                <div>
+                    <h1 class="font-black text-lg md:text-xl tracking-tight leading-tight flex items-center gap-2">
+                        SQ3R Quest Buddy <span class="text-[10px] bg-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full border border-indigo-500/40 font-bold">V2 RPG</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Asisten Belajar Mandiri Berpeta Petualangan</p>
+                </div>
+            </div>
+
+            <!-- RPG STATUS BAR (INTEGRASI PENUH ALPINEJS) -->
+            <div class="flex flex-wrap items-center justify-center gap-4 bg-slate-950 p-3 rounded-2xl border border-slate-800 shadow-inner">
+                <!-- Avatar Class & Level -->
+                <div class="flex items-center gap-2.5 px-1">
+                    <div class="bg-indigo-600 text-white p-2 rounded-xl text-sm font-bold flex items-center justify-center relative shadow-lg">
+                        <template x-if="session.rpg.charClass === 'warrior'"><i class="fa-solid fa-shield-halved text-red-300"></i></template>
+                        <template x-if="session.rpg.charClass === 'mage'"><i class="fa-solid fa-wand-magic-sparkles text-purple-300"></i></template>
+                        <template x-if="session.rpg.charClass === 'rogue'"><i class="fa-solid fa-bolt text-amber-300"></i></template>
+                        <span class="absolute -bottom-1 -right-1 bg-yellow-500 text-slate-950 text-[9px] font-black w-4.5 h-4.5 rounded-full flex items-center justify-center border border-slate-950" x-text="session.rpg.level">1</span>
+                    </div>
+                    <div>
+                        <p class="text-[9px] text-slate-400 uppercase font-extrabold tracking-wider" x-text="session.rpg.charClass || 'No Class'"></p>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-bold text-slate-200" x-text="`XP ${session.rpg.xp}/${session.rpg.level * 100}`">XP 0/100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- XP Bar -->
+                <div class="w-20 md:w-28">
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden border border-slate-700/60">
+                        <div :style="`width: ${Math.min((session.rpg.xp / (session.rpg.level * 100)) * 100, 100)}%`" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 h-full transition-all duration-500"></div>
+                    </div>
+                </div>
+
+                <!-- HP / Focus Shield -->
+                <div class="flex items-center gap-2 pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-heart-pulse text-red-500 text-xs animate-pulse"></i>
+                    <div>
+                        <span class="text-[9px] text-slate-400 block font-bold leading-none">SHIELD</span>
+                        <span class="text-xs font-extrabold text-slate-200" x-text="`${session.rpg.hp}%`">100%</span>
+                    </div>
+                </div>
+
+                <!-- Gold -->
+                <div class="flex items-center gap-2 pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-coins text-yellow-500 text-xs"></i>
+                    <div>
+                        <span class="text-[9px] text-slate-400 block font-bold leading-none">GOLD</span>
+                        <span class="text-xs font-black text-yellow-400" x-text="session.rpg.gold">50</span>
+                    </div>
+                </div>
+
+                <!-- Streak -->
+                <div class="flex items-center gap-1.5 pl-3 border-l border-slate-800">
+                    <i class="fa-solid fa-fire text-orange-500 text-xs"></i>
+                    <span class="text-xs font-black text-orange-400" x-text="`${session.rpg.streak} H`">&bull;</span>
+                </div>
+            </div>
+            
+            <!-- Quick Actions & Theme Toggles -->
+            <div class="flex items-center flex-wrap gap-2.5">
+                <!-- Theme Controller -->
+                <div class="flex items-center bg-slate-950 rounded-xl p-1 text-xs border border-slate-800">
+                    <button @click="setTheme('slate')" :class="currentTheme === 'slate' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1.5 rounded-lg font-semibold transition-all-300">Light</button>
+                    <button @click="setTheme('sepia')" :class="currentTheme === 'sepia' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1.5 rounded-lg font-semibold transition-all-300">Sepia</button>
+                    <button @click="setTheme('dark')" :class="currentTheme === 'dark' ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1.5 rounded-lg font-semibold transition-all-300">Dark</button>
+                </div>
+
+                <!-- API Settings -->
+                <button @click="showSettings = true" class="px-3 py-2 text-xs bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition-all border border-slate-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gear text-slate-400"></i> API
+                </button>
+
+                <!-- Reset -->
+                <button @click="resetSession()" class="px-3 py-2 text-xs bg-rose-950 hover:bg-rose-900 text-rose-300 font-bold rounded-xl transition-all border border-rose-800/30 flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash-can"></i> Reset
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- BANNER NOTIFIKASI API -->
+    <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 mt-4" x-cloak>
+        <template x-if="!settings.apiKey">
+            <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-2xl flex items-start text-xs sm:text-sm text-amber-700 dark:text-amber-300 gap-3">
+                <i class="fa-solid fa-triangle-exclamation text-lg text-amber-500 mt-0.5"></i>
+                <div>
+                    <strong>Konfigurasi API Diperlukan:</strong> Sistem AI belum dapat diaktifkan. Klik tombol 
+                    <button @click="showSettings = true" class="underline font-bold hover:opacity-80">Pengaturan API</button> 
+                    lalu masukkan API Key Anda untuk mulai belajar mandiri.
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- WORKSPACE AREA (SQ3R QUEST LINE) -->
+        <section class="lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- QUEST TIMELINE (PROGRESS MAP) -->
+            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-4">
+                <div>
+                    <h3 class="font-extrabold text-xs uppercase tracking-widest opacity-75 flex items-center gap-2">
+                        <i class="fa-solid fa-compass text-indigo-500"></i> PETA QUEST BELAJAR (SQ3R)
+                    </h3>
+                    <p class="text-[11px] opacity-60 mt-0.5">Selesaikan setiap langkah untuk membuka naskah pemahaman berikutnya.</p>
+                </div>
+
+                <!-- Quest Road Steps -->
+                <div class="grid grid-cols-5 gap-2 relative">
+                    <template x-for="step in [1,2,3,4,5]">
+                        <button 
+                            @click="changeStep(step)"
+                            :disabled="!isStepUnlocked(step)"
+                            :class="getQuestStepClass(step)"
+                            class="py-3 px-1.5 rounded-2xl text-xs transition-all-300 flex flex-col items-center justify-center border text-center shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                            <span class="text-sm font-black" x-text="['S', 'Q', 'R1', 'R2', 'R3'][step - 1]"></span>
+                            <span class="text-[9px] font-bold tracking-wide mt-0.5" x-text="['Survey', 'Question', 'Read', 'Recite', 'Review'][step - 1]"></span>
+                            
+                            <!-- Unlocked Indicator dot -->
+                            <div class="mt-1.5 flex gap-1 items-center">
+                                <span class="w-1.5 h-1.5 rounded-full" :class="isStepCompleted(step) ? 'bg-emerald-500' : 'bg-slate-400'"></span>
+                            </div>
+                        </button>
+                    </template>
+                </div>
+
+                <!-- Step Description Tooltip -->
+                <div class="p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl text-xs leading-relaxed">
+                    <strong class="text-indigo-500 dark:text-indigo-300 block mb-0.5">Misi Saat Ini:</strong>
+                    <span class="opacity-75" x-text="getStepDescription()"></span>
+                </div>
+            </div>
+
+            <!-- WORKSPACE SECTIONS -->
+            <div class="flex flex-col gap-5">
+                
+                <!-- STEP 1: SURVEY -->
+                <div x-show="currentStep === 1" class="flex flex-col gap-5" x-transition:enter="transition-all-300">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        
+                        <!-- Inputs -->
+                        <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
+                            <div class="flex flex-col gap-4">
+                                <div>
+                                    <h2 class="text-xl font-black flex items-center gap-2">
+                                        <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">S</span> SURVEY THE BMP
+                                    </h2>
+                                    <p class="opacity-70 text-xs mt-1.5">Masukkan topik Buku Materi Pokok (BMP) UT Anda untuk menganalisis garis besar materi.</p>
+                                </div>
+
+                                <div class="space-y-3.5">
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 opacity-60">Nama Mata Kuliah</label>
+                                        <input type="text" x-model="session.courseName" :class="getThemeInputClass()" placeholder="Contoh: Pengantar Ilmu Komunikasi" class="w-full px-4 py-2.5 border rounded-xl text-xs font-semibold focus:outline-none transition-all-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 opacity-60">Modul / Topik Pembahasan</label>
+                                        <input type="text" x-model="session.moduleTopic" :class="getThemeInputClass()" placeholder="Contoh: Modul 1 - Teori Komunikasi Massa" class="w-full px-4 py-2.5 border rounded-xl text-xs font-semibold focus:outline-none transition-all-300">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold uppercase tracking-wider mb-1 opacity-60">Struktur Sub-Bab / Kerangka Draft</label>
+                                        <textarea x-model="session.outline" rows="5" :class="getThemeInputClass()" placeholder="Salin poin-poin sub-bab atau kutipan paragraf pendahuluan modul di sini..." class="w-full px-4 py-2.5 border rounded-xl text-xs leading-relaxed focus:outline-none transition-all-300"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button @click="generateSurvey()" :disabled="isLoading || !session.courseName || !session.moduleTopic" class="w-full px-4 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                                <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
+                                <i class="fa-solid fa-wand-magic-sparkles" x-show="!isLoading"></i> Ekspedisi Analisis Survei (AI)
+                            </button>
+                        </div>
+
+                        <!-- Results / Reference Panel -->
+                        <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col justify-between gap-5">
+                            <div class="border-b pb-3 flex justify-between items-center">
+                                <h3 class="font-bold text-xs uppercase tracking-widest opacity-75 flex items-center gap-2">
+                                    <i class="fa-solid fa-book-open"></i> Hasil Survey Rujukan
+                                </h3>
+                                <button x-show="session.surveyResult" @click="openFocusReading()" class="px-2.5 py-1 text-[10px] bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 rounded-lg font-bold transition">
+                                    <i class="fa-solid fa-expand mr-1"></i> Mode Fokus
+                                </button>
+                            </div>
+
+                            <div class="flex-1 flex flex-col justify-center min-h-[250px]">
+                                <!-- Empty state -->
+                                <div x-show="!session.surveyResult" class="text-center py-8 opacity-50">
+                                    <i class="fa-solid fa-compass-drafting text-4xl mb-3 text-slate-300 dark:text-slate-700"></i>
+                                    <p class="text-xs max-w-xs mx-auto">Hasil analisis peta kognitif AI akan tampil di sini setelah ekspedisi dijalankan.</p>
+                                </div>
+
+                                <!-- Content view -->
+                                <div x-show="session.surveyResult" class="flex flex-col justify-between h-full gap-4">
+                                    <div :class="[fontSizes[fontSizeIdx], readingFont === 'serif' ? 'font-serif' : 'font-sans']"
+                                         class="prose dark:prose-invert prose-sm leading-relaxed overflow-y-auto max-h-[290px] pr-2 text-slate-700 dark:text-slate-300"
+                                         x-html="renderMarkdown(session.surveyResult)">
+                                    </div>
+                                    <div class="text-[10px] opacity-50 pt-2 border-t border-dashed border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                                        <span>Model: <span class="font-mono font-semibold" x-text="session.surveyModel"></span></span>
+                                        <span class="text-emerald-500 font-semibold"><i class="fa-solid fa-circle-check"></i> Siap Menjadi Rujukan</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- STEP 2: QUESTION -->
+                <div x-show="currentStep === 2" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
+                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                        <div>
+                            <h2 class="text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">Q</span> QUESTIONING THE ENEMY
+                            </h2>
+                            <p class="opacity-70 text-xs mt-1.5">Rumuskan pertanyaan-pertanyaan pemandu belajar agar proses membaca Anda memiliki arah sasaran yang mutlak.</p>
+                        </div>
+
+                        <!-- Mini Survey Snapshot -->
+                        <div x-show="session.surveyResult" class="p-3.5 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl text-xs">
+                            <span class="font-bold text-indigo-600 dark:text-indigo-400 block mb-1">Rujukan Survey:</span>
+                            <div class="max-h-16 overflow-y-auto opacity-70 leading-relaxed" x-html="renderMarkdown(session.surveyResult.substring(0, 180) + '...')"></div>
+                        </div>
+
+                        <!-- Questions Area -->
+                        <div class="space-y-3">
+                            <template x-if="session.questions.length === 0 && !isLoading">
+                                <div class="text-center py-8 border border-dashed rounded-2xl border-slate-300 dark:border-slate-800 opacity-60">
+                                    <i class="fa-solid fa-clipboard-question text-3xl mb-2 text-slate-400"></i>
+                                    <p class="text-xs">Gunakan AI di bawah untuk merumuskan daftar sasaran pertanyaan pemandu secara otomatis.</p>
+                                </div>
+                            </template>
+
+                            <template x-if="isLoading">
+                                <div class="space-y-3 animate-pulse">
+                                    <div class="h-12 bg-slate-200 dark:bg-slate-800 rounded-xl w-full"></div>
+                                    <div class="h-12 bg-slate-200 dark:bg-slate-800 rounded-xl w-full"></div>
+                                </div>
+                            </template>
+
+                            <div class="space-y-2.5" x-show="session.questions.length > 0">
+                                <template x-for="(q, index) in session.questions" :key="q.id">
+                                    <div class="flex items-center gap-3 p-3 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl transition-all">
+                                        <span class="font-black text-xs text-indigo-600 dark:text-indigo-300 bg-indigo-500/20 w-6 h-6 flex items-center justify-center rounded-full" x-text="index+1"></span>
+                                        <input type="text" x-model="q.text" :class="getThemeInputClass()" class="flex-1 bg-transparent border-none focus:ring-0 p-1 text-xs font-semibold">
+                                        <button @click="removeQuestion(index)" class="text-slate-400 hover:text-rose-500 p-1" title="Hapus"><i class="fa-solid fa-trash-can"></i></button>
+                                    </div>
+                                </template>
+                            </div>
+
+                            <!-- Manual Add Button -->
+                            <div class="flex justify-end" x-show="session.questions.length > 0">
+                                <button @click="addQuestion()" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1">
+                                    <i class="fa-solid fa-plus"></i> Tambah Manual
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Footer Actions -->
+                        <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <button @click="generateQuestions()" :disabled="isLoading || !session.surveyResult" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all flex items-center justify-center gap-2">
+                                <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
+                                <i class="fa-solid fa-brain" x-show="!isLoading"></i> Rumuskan Pertanyaan (AI)
+                            </button>
+                            
+                            <button x-show="session.questions.length > 0" @click="changeStep(3)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all">
+                                Mulai Pertempuran Baca (R1) <i class="fa-solid fa-sword"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: READ (POMODORO & COMBAT GRAPHICS) -->
+                <div x-show="currentStep === 3" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
+                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                        <div class="flex justify-between items-center flex-wrap gap-4">
+                            <div>
+                                <h2 class="text-xl font-black flex items-center gap-2">
+                                    <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R1</span> ACTIVE READING (COMBAT)
+                               </h2>
+                                <p class="opacity-70 text-xs mt-1.5">Buka BMP UT Anda, temukan jawaban untuk target pertanyaan yang sudah ditandai.</p>
+                            </div>
+
+                            <!-- Countdown Timer -->
+                            <div class="bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-2xl flex items-center gap-3.5 text-xs text-white">
+                                <span class="font-extrabold text-slate-400 tracking-wider">TIMER:</span>
+                                <span class="font-mono font-black text-indigo-400 text-base" x-text="formatTime(timerSeconds)">25:00</span>
+                                <button @click="toggleTimer()" class="text-slate-300 hover:text-white"><i class="fa-solid" :class="timerRunning ? 'fa-pause' : 'fa-play'"></i></button>
+                                <button @click="resetTimer()" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-rotate-left"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- VISUAL RPG COMBAT INTERFACES -->
+                        <div class="border border-slate-800 bg-slate-950 p-5 rounded-3xl grid grid-cols-1 md:grid-cols-12 gap-5 items-center relative overflow-hidden">
+                            
+                            <!-- Fighter Info (Left) -->
+                            <div class="md:col-span-4 flex flex-col items-center text-center gap-2 border-b md:border-b-0 md:border-r border-slate-800 pb-4 md:pb-0 md:pr-4">
+                                <div class="w-16 h-16 bg-indigo-900/40 border border-indigo-500/40 rounded-2xl flex items-center justify-center text-indigo-400 text-3xl">
+                                    <template x-if="session.rpg.charClass === 'warrior'"><i class="fa-solid fa-shield-halved"></i></template>
+                                    <template x-if="session.rpg.charClass === 'mage'"><i class="fa-solid fa-wand-magic-sparkles"></i></template>
+                                    <template x-if="session.rpg.charClass === 'rogue'"><i class="fa-solid fa-bolt"></i></template>
+                                </div>
+                                <div>
+                                    <h4 class="text-slate-200 text-xs font-black uppercase tracking-wide">Fighter Anda</h4>
+                                    <p class="text-[10px] text-indigo-400 font-bold" x-text="`Lv. ${session.rpg.level} ${session.rpg.charClass}`"></p>
+                                </div>
+                            </div>
+
+                            <!-- VS Combat State (Middle) -->
+                            <div class="md:col-span-4 flex flex-col items-center gap-2">
+                                <span class="text-[10px] text-slate-500 font-black tracking-widest">PERTEMPURAN AKTIF</span>
+                                <div class="text-xs px-3 py-1 bg-red-950/80 border border-red-800/40 text-red-400 rounded-full font-black animate-pulse" x-text="timerRunning ? 'CRITICAL DAMAGE ACTIVE' : 'MENUNGGU FOKUS'"></div>
+                            </div>
+
+                            <!-- Boss Info (Right) -->
+                            <div class="md:col-span-4 flex flex-col items-center text-center gap-2">
+                                <div class="w-16 h-16 bg-rose-950/40 border border-rose-500/40 rounded-2xl flex items-center justify-center text-rose-500 text-3xl relative" :class="timerRunning ? 'boss-active' : ''">
+                                    <i class="fa-solid fa-dragon"></i>
+                                </div>
+                                <div class="w-full">
+                                    <h4 class="text-slate-200 text-xs font-black">Demon Prokrastinasi</h4>
+                                    <!-- HP Boss Bar -->
+                                    <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700 mt-1.5">
+                                        <div class="bg-gradient-to-r from-red-600 to-amber-500 h-full transition-all duration-300" :style="`width: ${session.rpg.bossHp}%`"></div>
+                                    </div>
+                                    <span class="text-[9px] text-rose-400 font-semibold" x-text="`Stamina: ${session.rpg.bossHp}%`"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COMBAT LOG CONSOLE -->
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4.5 font-mono text-[11px] leading-relaxed text-indigo-300">
+                            <span class="text-slate-500 block mb-2 font-bold uppercase tracking-wider text-[9px] border-b border-slate-900 pb-1.5"><i class="fa-solid fa-terminal mr-1"></i> LOG PERTEMPURAN AKADEMIS</span>
+                            <div class="space-y-1 max-h-24 overflow-y-auto pr-1" id="combat-log-console">
+                                <template x-for="log in combatLogs">
+                                    <div class="flex items-start gap-1">
+                                        <span class="text-slate-600 select-none">&gt;</span>
+                                        <span x-text="log"></span>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Target Task Guidelines -->
+                        <div x-show="session.questions.length > 0" class="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
+                             <h3 class="font-bold text-xs text-indigo-600 dark:text-indigo-400 mb-2 flex items-center gap-1.5"><i class="fa-solid fa-crosshairs"></i> Sasaran Pembacaan yang Harus Ditemukan:</h3>
+                             <ul class="list-decimal list-inside space-y-1 text-xs opacity-80">
+                                  <template x-for="q in session.questions">
+                                       <li x-text="q.text"></li>
+                                  </template>
+                             </ul>
+                        </div>
+
+                        <!-- Footer Control -->
+                        <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex justify-between items-center flex-wrap gap-3">
+                            <span class="text-[10px] opacity-65">Isi poin coretan Anda pada panel kanan untuk menyimpan hasil bacaan secara instan!</span>
+                            <button @click="changeStep(4)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2">
+                                Lanjut Menulis Jawaban (R2) <i class="fa-solid fa-feather-pointed"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: RECITE -->
+                <div x-show="currentStep === 4" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
+                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                        <div>
+                            <h2 class="text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R2</span> RECITE THE TRUTH
+                            </h2>
+                            <p class="opacity-70 text-xs mt-1.5">Tuliskan pemahaman yang berhasil Anda serap dari ingatan kognitif Anda tanpa melihat buku, lalu evaluasi ketepatannya bersama AI.</p>
+                        </div>
+
+                        <!-- Questions Answer Panel -->
+                        <div class="space-y-4">
+                            <template x-for="(q, idx) in session.questions" :key="q.id">
+                                <div class="p-4 border border-slate-200 dark:border-slate-800 rounded-2xl bg-indigo-500/5 flex flex-col gap-3">
+                                    <div class="flex items-start gap-2">
+                                        <span class="bg-indigo-600 text-white font-bold text-xs w-5.5 h-5.5 flex items-center justify-center rounded-full flex-shrink-0" x-text="idx+1"></span>
+                                        <span class="text-xs font-bold text-slate-800 dark:text-slate-200" x-text="q.text"></span>
+                                    </div>
+                                    
+                                    <textarea x-model="q.answer" rows="3" :class="getThemeInputClass()" placeholder="Tuliskan pemahaman nalar Anda di sini..." class="w-full px-3 py-2 border rounded-xl text-xs leading-relaxed focus:outline-none transition-all-300"></textarea>
+
+                                    <!-- Tutor AI Feedback Area -->
+                                    <div x-show="q.feedback" class="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-xl text-xs leading-relaxed">
+                                        <div class="flex justify-between items-center mb-2 text-[9px] text-indigo-600 dark:text-indigo-400 font-extrabold uppercase tracking-wider">
+                                            <span>Umpan Balik Tutor AI</span>
+                                            <span class="opacity-50 font-normal">Model: <span x-text="session.reciteModel"></span></span>
+                                        </div>
+                                        <div class="prose dark:prose-invert prose-xs leading-relaxed max-w-none text-slate-750 dark:text-slate-300" x-html="renderMarkdown(q.feedback)"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Footer Control -->
+                        <div class="border-t pt-4 border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                            <button @click="evaluateAnswers()" :disabled="isLoading || session.questions.length === 0" class="w-full sm:w-auto px-5 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                                <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
+                                <i class="fa-solid fa-wand-magic-sparkles" x-show="!isLoading"></i> Evaluasi Jawaban (Tutor AI)
+                            </button>
+                            <button @click="changeStep(5)" class="w-full sm:w-auto px-5 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-950 font-black rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-md">
+                                Lanjut Evaluasi Akhir (R3) <i class="fa-solid fa-scroll"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 5: REVIEW -->
+                <div x-show="currentStep === 5" class="flex flex-col gap-5" x-transition:enter="transition-all-300" x-cloak>
+                    <div :class="getThemeCardClass()" class="p-6 rounded-3xl border transition-all-300 flex flex-col gap-5">
+                        <div>
+                            <h2 class="text-xl font-black flex items-center gap-2">
+                                <span class="bg-indigo-500 text-white text-xs px-2.5 py-1 rounded-xl font-bold">R3</span> REVIEW AND CONQUER
+                            </h2>
+                            <p class="opacity-70 text-xs mt-1.5">Uji pemahaman puncak Anda melalui simulasi kuis standar berpikir tingkat tinggi (HOTS).</p>
+                        </div>
+
+                        <!-- Generate State Button -->
+                        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 border-b border-slate-200 dark:border-slate-800 pb-4" x-show="session.quiz.length === 0">
+                            <span class="text-xs opacity-60">Sistem AI akan menyusun kuis interaktif berdasarkan keseluruhan materi yang telah Anda survei.</span>
+                            <button @click="generateQuiz()" :disabled="isLoading || !session.surveyResult" class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition-all shadow-md flex items-center justify-center gap-2">
+                                <span x-show="isLoading" class="animate-spin border-2 border-white border-t-transparent rounded-full w-3.5 h-3.5"></span>
+                                <i class="fa-solid fa-gamepad" x-show="!isLoading"></i> Susun Lembar Kuis (AI)
+                            </button>
+                        </div>
+
+                        <!-- Quiz Dashboard -->
+                        <div class="space-y-5" x-show="session.quiz.length > 0">
+                            <template x-for="(q, qIdx) in session.quiz" :key="q.id || qIdx">
+                                <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-2xl bg-indigo-500/5 flex flex-col gap-4">
+                                    <p class="text-xs font-extrabold text-slate-800 dark:text-slate-100" x-text="`${qIdx+1}. ${q.question}`"></p>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                                        <template x-for="(option, oIdx) in q.options" :key="oIdx">
+                                            <button 
+                                                @click="selectQuizOption(qIdx, oIdx)"
+                                                :disabled="q.selectedAnswer !== null"
+                                                :class="quizOptionClass(q, oIdx)"
+                                                class="p-3 text-xs text-left rounded-xl border flex items-center gap-2.5 transition-all font-semibold"
+                                            >
+                                                <span class="font-bold border w-6 h-6 rounded-full flex items-center justify-center bg-white dark:bg-slate-800 text-slate-500 shadow-2xs" x-text="String.fromCharCode(65 + oIdx)"></span>
+                                                <span class="flex-1" x-text="option"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Opened Explanation Feedback -->
+                                    <div x-show="q.selectedAnswer !== null" class="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs transition-all shadow-2xs">
+                                        <p class="font-bold text-[10px] uppercase tracking-wider" :class="q.selectedAnswer === q.correctAnswerIdx ? 'text-green-600 dark:text-green-400' : 'text-rose-600 dark:text-rose-400'">
+                                            <i :class="q.selectedAnswer === q.correctAnswerIdx ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                                            <span x-text="q.selectedAnswer === q.correctAnswerIdx ? 'JAWABAN BENAR!' : 'KURANG TEPAT.'"></span>
+                                        </p>
+                                        <p class="mt-1 opacity-80 font-bold">Kunci: <strong x-text="String.fromCharCode(65 + q.correctAnswerIdx)"></strong></p>
+                                        <template x-if="q.explanation">
+                                            <div class="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] leading-relaxed prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-400" x-html="renderMarkdown(q.explanation)"></div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-3">
+                                <button @click="generateQuiz()" class="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1.5">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Susun Kuis Baru (AI)
+                                </button>
+                                <div class="bg-indigo-600 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md">
+                                    Skor Evaluasi: <span x-text="calculateQuizScore()"></span> / 100
+                               </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- COMPANION RPG SIDEBAR -->
+        <aside class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- CORETAN CATATAN BELAJAR -->
+            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <label class="font-extrabold text-xs text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                        <i class="fa-solid fa-feather text-indigo-500"></i> CORETAN CATATAN BELAJAR (R1)
+                    </label>
+                    <span class="text-[9px] opacity-60 font-semibold bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">Auto-save</span>
+                </div>
+                <textarea x-model="session.readingNotes" rows="5" 
+                          :class="getThemeInputClass()"
+                          placeholder="Tuliskan temuan penting, rangkuman, kata kunci penting, atau referensi nomor halaman BMP fisik Anda di sini..." 
+                          class="w-full px-3 py-2.5 border rounded-2xl focus:outline-none text-xs leading-relaxed transition-all-300 resize-none"></textarea>
+            </div>
+
+            <!-- BOUNTY BOARD (QUEST & SHOP) -->
+            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-4">
+                <div class="border-b border-slate-200/60 dark:border-slate-800 pb-3">
+                    <h3 class="font-extrabold text-xs uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-scroll text-yellow-500"></i> PAPAN MISI BELAJAR
+                    </h3>
+                    <p class="text-[10px] opacity-60 mt-0.5">Selesaikan misi untuk menimbun koin emas dan XP.</p>
+                </div>
+
+                <!-- Quest Board List -->
+                <div class="space-y-2.5">
+                    <template x-for="quest in session.rpg.dailyQuests" :key="quest.id">
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border transition-all text-xs"
+                             :class="quest.done ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600 dark:text-indigo-400 line-through' : 'bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 text-slate-700 dark:text-slate-300'">
+                            <div class="flex items-center gap-2">
+                                <i :class="quest.done ? 'fa-solid fa-circle-check text-indigo-500' : 'fa-regular fa-circle opacity-60'"></i>
+                                <span class="font-bold text-[11px]" x-text="quest.text"></span>
+                            </div>
+                            <span class="text-[10px] font-black text-yellow-500" x-show="!quest.done" x-text="`+${quest.rewardGold}G`"></span>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Item Shop -->
+                <div class="space-y-2.5 pt-4 border-t border-slate-200 dark:border-slate-800">
+                    <span class="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider block"><i class="fa-solid fa-store"></i> Kedai Ramuan Belajar</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Elixir Focus -->
+                        <button @click="buyItem('focus_elixir', 30)" 
+                                class="p-2.5 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 bg-slate-50/30 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-xl text-left transition flex flex-col gap-1">
+                            <span class="text-[11px] font-extrabold text-indigo-600 dark:text-indigo-400 flex items-center gap-1"><i class="fa-solid fa-flask"></i> Ramuan Fokus</span>
+                            <span class="text-[9px] opacity-60 leading-tight">Pengali XP 1.5x untuk aksi berikutnya.</span>
+                            <span class="text-[9px] font-black text-yellow-500 mt-1 flex items-center gap-1"><i class="fa-solid fa-coins"></i> 30 Gold</span>
+                        </button>
+
+                        <!-- Procrastination Shield Restorer -->
+                        <button @click="buyItem('shield', 50)" 
+                                class="p-2.5 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 bg-slate-50/30 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-900/50 rounded-xl text-left transition flex flex-col gap-1">
+                            <span class="text-[11px] font-extrabold text-red-500 dark:text-red-400 flex items-center gap-1"><i class="fa-solid fa-shield-heart"></i> Pulihkan Shield</span>
+                            <span class="text-[9px] opacity-60 leading-tight">Memulihkan stamina fokus kembali ke 100%.</span>
+                            <span class="text-[9px] font-black text-yellow-500 mt-1 flex items-center gap-1"><i class="fa-solid fa-coins"></i> 50 Gold</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Buff Tracker -->
+                <div class="space-y-1.5 pt-3 border-t border-slate-200 dark:border-slate-800" x-show="session.rpg.activeBuffs.length > 0">
+                    <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">Buff Efek Aktif:</span>
+                    <div class="flex flex-wrap gap-1">
+                        <template x-for="buff in session.rpg.activeBuffs">
+                            <span class="bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 px-2.5 py-0.5 rounded-full text-[9px] font-bold flex items-center gap-1">
+                                <i class="fa-solid fa-bolt"></i> <span x-text="buff === 'focus_elixir' ? 'Bonus XP 1.5x Aktif' : buff"></span>
+                            </span>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DUNGEON BMP UT (Modul Progress Checklist) -->
+            <div :class="getThemeCardClass()" class="p-5 rounded-3xl border transition-all-300 flex flex-col gap-3">
+                <div>
+                    <h3 class="font-extrabold text-xs uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-map-location-dot text-indigo-500"></i> PETA DUNGEON BMP UT
+                    </h3>
+                    <p class="text-[10px] opacity-60 mt-0.5">Misi Modul Riil: Tandai modul BMP fisik yang sudah Anda rampungkan dalam dunia nyata.</p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <template x-for="(modVal, modIdx) in session.rpg.conqueredModules" :key="modIdx">
+                        <button @click="toggleModule(modIdx)" 
+                                :class="modVal ? 'bg-indigo-600 border-indigo-600 text-white shadow-md' : 'bg-slate-50/50 dark:bg-slate-900/40 border-slate-250 dark:border-slate-800/80 text-slate-500 hover:scale-105'"
+                                class="p-2 border rounded-xl text-center flex flex-col items-center justify-center gap-1 transition-all-300">
+                            <i :class="modVal ? 'fa-solid fa-circle-check text-white' : 'fa-solid fa-book-open opacity-50'"></i>
+                            <span class="text-[10px] font-extrabold" x-text="`Modul ${modIdx + 1}`"></span>
+                            <span class="text-[8px] font-semibold opacity-75" x-show="!modVal">+100 XP</span>
+                        </button>
+                    </template>
+                </div>
+            </div>
+
+            <!-- EXPORT REPORT ACTION -->
+            <button @click="exportToHtml()" :disabled="!session.surveyResult" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-2xl text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed">
+                <i class="fa-solid fa-file-export"></i> Ekspor Laporan Belajar (.HTML)
+            </button>
+
+        </aside>
+    </main>
+
+    <!-- IMMERSIVE FOCUS READING MODAL -->
+    <div x-show="focusReadingOpen" class="fixed inset-0 z-50 overflow-y-auto flex flex-col transition-all-300" :class="focusThemeClass()" x-cloak>
+        <div class="border-b px-6 py-4 flex justify-between items-center sticky top-0 backdrop-blur-md z-10" :class="focusToolbarClass()">
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold uppercase tracking-wider opacity-60">Mode Fokus Membaca</span>
+                <span class="text-xs px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold max-w-[200px] truncate" x-text="session.moduleTopic || 'Materi UT'"></span>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <button @click="setTheme('slate')" :class="currentTheme === 'slate' ? 'ring-2 ring-indigo-500' : ''" class="w-6 h-6 rounded-full bg-slate-100 border border-slate-300" title="Slate Light"></button>
+                <button @click="setTheme('sepia')" :class="currentTheme === 'sepia' ? 'ring-2 ring-amber-600' : ''" class="w-6 h-6 rounded-full bg-[#fdfaf2] border border-[#dfd0b0]" title="Warm Sepia"></button>
+                <button @click="setTheme('dark')" :class="currentTheme === 'dark' ? 'ring-2 ring-indigo-400' : ''" class="w-6 h-6 rounded-full bg-slate-900 border border-slate-700" title="Night Dark"></button>
+                
+                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                
+                <button @click="toggleFont()" class="px-3 py-1.5 text-xs rounded-lg border hover:bg-slate-100 dark:hover:bg-slate-800 font-bold transition" x-text="readingFont === 'serif' ? 'Gunakan Sans-Serif' : 'Gunakan Serif'"></button>
+                
+                <button @click="decreaseFontSize()" class="px-2.5 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A-</button>
+                <button @click="increaseFontSize()" class="px-2.5 py-1.5 text-xs border rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 font-extrabold">A+</button>
+                
+                <div class="h-4 w-px bg-slate-300 dark:bg-slate-700 mx-1"></div>
+                
+                <button @click="closeFocusReading()" class="px-4 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-lg hover:bg-rose-500 transition shadow-sm">
+                    Tutup
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 max-w-3xl mx-auto w-full px-6 py-12">
+            <article :class="[fontSizes[fontSizeIdx], readingFont === 'serif' ? 'font-serif' : 'font-sans']" class="prose dark:prose-invert max-w-none leading-relaxed">
+                <h1 class="text-3xl font-black tracking-tight border-b pb-4 dark:border-slate-800" x-text="session.moduleTopic || 'Materi Belajar'"></h1>
+                <p class="text-xs uppercase font-bold tracking-wider opacity-60 mt-3" x-text="session.courseName || 'Mata Kuliah UT'"></p>
+                
+                <div class="mt-8 text-slate-800 dark:text-slate-100" x-html="renderMarkdown(session.surveyResult || '### Belum ada rujukan survei.\nSilakan lakukan langkah **Survey (1)** terlebih dahulu.')"></div>
+            </article>
+        </div>
+    </div>
+
+    <!-- API SETTINGS MODAL -->
+    <div x-show="showSettings" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4" x-cloak>
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-250 dark:border-slate-800 flex flex-col overflow-hidden transition-all-300" @click.away="showSettings = false">
+            <div class="bg-indigo-900 text-white p-5 flex justify-between items-center">
+                <h3 class="font-extrabold text-sm tracking-wide"><i class="fa-solid fa-shield-halved"></i> Konfigurasi API</h3>
+                <button @click="showSettings = false" class="text-slate-300 hover:text-white transition-colors text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="p-6 flex flex-col gap-4 overflow-y-auto max-h-[70vh]">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Provider Layanan</label>
+                    <select x-model="settings.provider" @change="updateDefaults()" class="w-full px-3.5 py-2.5 border rounded-xl text-xs bg-white dark:bg-slate-850 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 font-semibold transition-all-300">
+                        <option value="gemini">Google Gemini API (Direkomendasikan)</option>
+                        <option value="openrouter">OpenRouter API</option>
+                        <option value="openai">OpenAI API</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Kunci API (API Key)</label>
+                    <input type="password" x-model="settings.apiKey" placeholder="Masukkan token API Key..." class="w-full px-3.5 py-2.5 border rounded-xl text-xs bg-white dark:bg-slate-850 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all-300">
+                    <p class="text-[10px] text-slate-400 mt-1.5">API Key Anda aman dan hanya disimpan secara lokal di dalam memori browser penjelajah Anda.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1.5">Model Utama</label>
+                        <input type="text" x-model="settings.primaryModel" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-mono bg-white dark:bg-slate-850 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-wider mb-1.5">Model Cadangan</label>
+                        <input type="text" x-model="settings.fallbackModel" class="w-full px-3.5 py-2.5 border rounded-xl text-xs font-mono bg-white dark:bg-slate-850 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                </div>
+
+                <!-- DIAGNOSIS PANEL (Visual Debugger) -->
+                <div x-show="apiErrorLog" class="p-3.5 bg-rose-500/5 border border-rose-500/20 rounded-xl text-[11px] leading-relaxed text-rose-600 dark:text-rose-400">
+                    <p class="font-extrabold uppercase tracking-wider flex items-center gap-1 mb-1 text-xs"><i class="fa-solid fa-bug"></i> Log Kesalahan Sistem API:</p>
+                    <pre class="font-mono overflow-x-auto text-[10px] max-h-36 whitespace-pre-wrap mt-1" x-text="apiErrorLog"></pre>
+                </div>
+
+                <div class="p-4 bg-indigo-500/5 rounded-2xl text-[11px] leading-relaxed text-indigo-900 dark:text-indigo-300 border border-indigo-500/10">
+                    <strong>Rekomendasi Model Gemini (Juni 2026):</strong><br>
+                    - Model Utama: <span class="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded border border-slate-300 dark:border-slate-750">gemini-3.5-flash</span> (Sangat stabil & optimal).<br>
+                    - Model Cadangan: <span class="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded border border-slate-300 dark:border-slate-750">gemini-3.1-pro-preview</span>.
+                </div>
+
+                <button @click="testAPIConnection()" :disabled="testingAPI" class="w-full mt-2 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs font-bold rounded-xl flex items-center justify-center gap-2 text-slate-700 dark:text-slate-200 border border-slate-300 dark:border-slate-750 transition-colors">
+                    <span x-show="testingAPI" class="animate-spin border-2 border-slate-500 border-t-transparent rounded-full w-3.5 h-3.5"></span>
+                    <i class="fa-solid fa-plug-circle-check" x-show="!testingAPI"></i> Tes Konektivitas Jalur API Utama
+                </button>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-850 p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button @click="showSettings = false" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md transition-colors">Simpan & Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORE SCRIPTS -->
+    <script>
+        function studyApp() {
+            return {
+                currentStep: 1,
+                showSettings: false,
+                isLoading: false,
+                apiStatus: 'idle', 
+                activeModel: '',
+                testingAPI: false,
+                showClassSelection: false,
+                notifications: [],
+                apiErrorLog: '',
+                combatLogs: ['Perjalanan dimulai! Siapkan draf modul UT Anda.'],
+
+                // VISUAL SYSTEMS
+                currentTheme: 'slate', 
+                fontSizeIdx: 2, 
+                fontSizes: ['text-xs', 'text-sm', 'text-base', 'text-lg'],
+                readingFont: 'serif',
+                focusReadingOpen: false,
+
+                // POMODORO TIMER
+                timerSeconds: 1500, 
+                timerRunning: false,
+                timerInterval: null,
+
+                settings: {
+                    provider: 'gemini',
+                    apiKey: '',
+                    primaryModel: 'gemini-3.5-flash',
+                    fallbackModel: 'gemini-3.1-pro-preview'
+                },
+
+                session: {
+                    courseName: '',
+                    moduleTopic: '',
+                    outline: '',
+                    surveyResult: '',
+                    surveyModel: '',
+                    questions: [], 
+                    questionModel: '',
+                    readingNotes: '',
+                    reciteModel: '',
+                    quiz: [], 
+                    quizModel: '',
+                    
+                    // GAMIFICATION
+                    rpg: {
+                        charClass: '', // warrior, mage, rogue
+                        level: 1,
+                        xp: 0,
+                        gold: 50,
+                        streak: 0,
+                        hp: 100,
+                        maxHp: 100,
+                        inventory: [],
+                        conqueredModules: Array(9).fill(false),
+                        bossHp: 100,
+                        dailyQuests: [
+                            { id: 1, text: "Gali Informasi lewat Survey (S)", rewardGold: 15, done: false },
+                            { id: 2, text: "Fokus Membaca lewat Pomodoro (R1)", rewardGold: 25, done: false },
+                            { id: 3, text: "Taklukkan Kuis HOTS (R3)", rewardGold: 20, done: false }
+                        ],
+                        activeBuffs: [],
+                    }
+                },
+
+                initApp() {
+                    try {
+                        const katexExt = typeof markedKatex !== 'undefined' ? markedKatex : (window.markedKatex || null);
+                        if (katexExt) {
+                            marked.use(katexExt({
+                                throwOnError: false,
+                                nonStandard: true
+                            }));
+                        }
+                    } catch (e) {
+                        console.error("Gagal inisialisasi marked-katex", e);
+                    }
+
+                    marked.setOptions({ breaks: true, gfm: true });
+
+                    // Load saved preferences
+                    const savedSettings = localStorage.getItem('ut_sq3r_settings_v8_rpg');
+                    if (savedSettings) this.settings = JSON.parse(savedSettings);
+                    
+                    const savedSession = localStorage.getItem('ut_sq3r_session_v8_rpg');
+                    if (savedSession) {
+                        this.session = JSON.parse(savedSession);
+                        if (!this.session.rpg) this.initRpgState();
+                    } else {
+                        this.initRpgState();
+                    }
+
+                    const savedTheme = localStorage.getItem('ut_sq3r_theme_v8_rpg');
+                    if (savedTheme) this.currentTheme = savedTheme;
+                    const savedFont = localStorage.getItem('ut_sq3r_font_v8_rpg');
+                    if (savedFont) this.readingFont = savedFont;
+
+                    if (!this.session.rpg.charClass) {
+                        this.showClassSelection = true;
+                    }
+
+                    // Alpine Watchers
+                    this.$watch('settings', value => {
+                        localStorage.setItem('ut_sq3r_settings_v8_rpg', JSON.stringify(value));
+                    }, { deep: true });
+
+                    this.$watch('session', value => {
+                        localStorage.setItem('ut_sq3r_session_v8_rpg', JSON.stringify(value));
+                    }, { deep: true });
+
+                    this.checkDailyStreak();
+                },
+
+                initRpgState() {
+                    this.session.rpg = {
+                        charClass: '',
+                        level: 1,
+                        xp: 0,
+                        gold: 50,
+                        streak: 0,
+                        hp: 100,
+                        maxHp: 100,
+                        inventory: [],
+                        conqueredModules: Array(9).fill(false),
+                        bossHp: 100,
+                        dailyQuests: [
+                            { id: 1, text: "Gali Informasi lewat Survey (S)", rewardGold: 15, done: false },
+                            { id: 2, text: "Fokus Membaca lewat Pomodoro (R1)", rewardGold: 25, done: false },
+                            { id: 3, text: "Taklukkan Kuis HOTS (R3)", rewardGold: 20, done: false }
+                        ],
+                        activeBuffs: [],
+                    };
+                },
+
+                selectClass(className) {
+                    this.session.rpg.charClass = className;
+                    this.showClassSelection = false;
+                    this.addNotification(`Karakter Dibuat! Berhasil bergabung sebagai ${className.toUpperCase()}.`);
+                    this.saveSession();
+                },
+
+                addNotification(msg) {
+                    const id = Date.now();
+                    this.notifications.push({ id, message: msg });
+                    setTimeout(() => {
+                        this.notifications = this.notifications.filter(n => n.id !== id);
+                    }, 4000);
+                },
+
+                saveSession() {
+                    localStorage.setItem('ut_sq3r_session_v8_rpg', JSON.stringify(this.session));
+                },
+
+                // DYNAMIC THEME SELECTORS (CLEAN PATHWAY)
+                getThemeBodyClass() {
+                    if (this.currentTheme === 'dark') return 'bg-slate-950 text-slate-100';
+                    if (this.currentTheme === 'sepia') return 'bg-[#f4edd8] text-[#433422]';
+                    return 'bg-slate-50 text-slate-900';
+                },
+
+                getThemeCardClass() {
+                    if (this.currentTheme === 'dark') return 'bg-slate-900/90 border-slate-800 text-slate-100 shadow-xl';
+                    if (this.currentTheme === 'sepia') return 'bg-[#fdfaf2] border-[#dfd0b0] text-[#433422] shadow-sm';
+                    return 'bg-white border-slate-200 text-slate-900 shadow-sm';
+                },
+
+                getThemeInputClass() {
+                    if (this.currentTheme === 'dark') return 'bg-slate-800 border-slate-700 text-white focus:ring-indigo-500/50 placeholder-slate-500';
+                    if (this.currentTheme === 'sepia') return 'bg-[#faf6eb] border-[#dcd0b8] text-[#4d3d2c] focus:ring-amber-500/50 placeholder-sepia-400';
+                    return 'bg-slate-50 border-slate-350 text-slate-900 focus:ring-indigo-500/30 placeholder-slate-400';
+                },
+
+                setTheme(theme) {
+                    this.currentTheme = theme;
+                    localStorage.setItem('ut_sq3r_theme_v8_rpg', theme);
+                },
+
+                // IMMERSIVE READING ACCENTS
+                focusThemeClass() {
+                    if (this.currentTheme === 'dark') return 'bg-slate-950 text-slate-100';
+                    if (this.currentTheme === 'sepia') return 'bg-[#f4edd8] text-[#433422]';
+                    return 'bg-slate-50 text-slate-900';
+                },
+
+                focusToolbarClass() {
+                    if (this.currentTheme === 'dark') return 'bg-slate-900 border-slate-800 text-slate-100';
+                    if (this.currentTheme === 'sepia') return 'bg-[#faf6eb] border-[#dcd0b8] text-[#433422]';
+                    return 'bg-white border-slate-200 text-slate-900';
+                },
+
+                toggleFont() {
+                    this.readingFont = this.readingFont === 'serif' ? 'sans' : 'serif';
+                    localStorage.setItem('ut_sq3r_font_v8_rpg', this.readingFont);
+                },
+
+                increaseFontSize() {
+                    if (this.fontSizeIdx < this.fontSizes.length - 1) this.fontSizeIdx++;
+                },
+
+                decreaseFontSize() {
+                    if (this.fontSizeIdx > 0) this.fontSizeIdx--;
+                },
+
+                openFocusReading() { this.focusReadingOpen = true; },
+                closeFocusReading() { this.focusReadingOpen = false; },
+
+                // RPG FLOW AND UNLOCK SYSTEM (QUEST MAP MECHANICS)
+                isStepUnlocked(step) {
+                    if (step === 1) return true;
+                    if (step === 2) return !!this.session.surveyResult;
+                    if (step === 3) return this.session.questions.length > 0;
+                    if (step === 4) return this.session.questions.length > 0;
+                    if (step === 5) return this.session.questions.length > 0 && this.session.questions.some(q => q.answer);
+                    return false;
+                },
+
+                isStepCompleted(step) {
+                    if (step === 1) return !!this.session.surveyResult;
+                    if (step === 2) return this.session.questions.length > 0;
+                    if (step === 3) return this.session.readingNotes.length > 20;
+                    if (step === 4) return this.session.questions.length > 0 && this.session.questions.every(q => q.answer && q.feedback);
+                    if (step === 5) return this.session.quiz.length > 0 && this.session.quiz.every(q => q.selectedAnswer !== null);
+                    return false;
+                },
+
+                getQuestStepClass(step) {
+                    const isCurrent = this.currentStep === step;
+                    const isCompleted = this.isStepCompleted(step);
+                    const isUnlocked = this.isStepUnlocked(step);
+
+                    if (isCurrent) {
+                        return 'bg-indigo-600 text-white border-indigo-600 ring-4 ring-indigo-500/20';
+                    }
+                    if (isCompleted) {
+                        return 'bg-emerald-500/10 text-emerald-600 border-emerald-500 dark:bg-emerald-950/20 dark:text-emerald-400';
+                    }
+                    if (isUnlocked) {
+                        return 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300';
+                    }
+                    return 'bg-slate-200/50 dark:bg-slate-900/40 border-slate-300/40 dark:border-slate-800/40 text-slate-400 cursor-not-allowed';
+                },
+
+                changeStep(step) {
+                    if (this.isStepUnlocked(step)) {
+                        this.currentStep = step;
+                    }
+                },
+
+                getStepDescription() {
+                    const desc = [
+                        "Survey (S): Masukkan poin modul BMP UT Anda untuk merumuskan gambaran umum wilayah pemikiran kognitif.",
+                        "Question (Q): Ubah sub-judul rujukan menjadi pertanyaan penuntun kritis sasaran penyerangan fokus.",
+                        "Read (R1): Lakukan eksplorasi membaca mendalam pada BMP Anda, jalankan Pomodoro untuk menghancurkan Demon Prokrastinasi.",
+                        "Recite (R2): Tuangkan pemahaman secara eksplisit dari memori Anda untuk dievaluasi secara konstruktif oleh Tutor AI.",
+                        "Review (R3): Perkuat seluruh ingatan materi kognitif dengan menguasai kuis evaluasi HOTS interaktif."
+                    ];
+                    return desc[this.currentStep - 1];
+                },
+
+                // EXTRINSIC REWARD SYSTEMS
+                addXP(baseAmount) {
+                    let finalAmount = baseAmount;
+                    
+                    // Guild pasif bonus
+                    if (this.session.rpg.charClass === 'warrior' && this.currentStep === 3) {
+                        finalAmount = Math.round(baseAmount * 1.20); 
+                        this.addNotification("🛡️ Pasif Warrior Aktif: +20% XP Fokus Baca!");
+                    } else if (this.session.rpg.charClass === 'mage' && (this.currentStep === 1 || this.currentStep === 2 || this.currentStep === 4)) {
+                        finalAmount = Math.round(baseAmount * 1.20); 
+                        this.addNotification("🔮 Pasif Mage Aktif: +20% XP Tanya Jawab!");
+                    } else if (this.session.rpg.charClass === 'rogue' && this.currentStep === 5) {
+                        finalAmount = Math.round(baseAmount * 1.20); 
+                        this.addNotification("🗡️ Pasif Rogue Aktif: +20% XP Kuis!");
+                    }
+
+                    // Active Buffs multiplier
+                    if (this.session.rpg.activeBuffs.includes('focus_elixir')) {
+                        finalAmount = Math.round(finalAmount * 1.5);
+                        this.session.rpg.activeBuffs = this.session.rpg.activeBuffs.filter(b => b !== 'focus_elixir');
+                        this.addNotification("✨ Ramuan Fokus digunakan: Pengali 1.5x XP diaplikasikan!");
+                    }
+
+                    this.session.rpg.xp += finalAmount;
+                    let xpNeeded = this.session.rpg.level * 100;
+                    
+                    while (this.session.rpg.xp >= xpNeeded) {
+                        this.session.rpg.xp -= xpNeeded;
+                        this.session.rpg.level += 1;
+                        this.session.rpg.hp = Math.min(this.session.rpg.hp + 25, 100); 
+                        xpNeeded = this.session.rpg.level * 100;
+                        this.addNotification(`🎉 LEVEL UP! Level Akademik Anda naik ke Level ${this.session.rpg.level}! Fokus Shield dipulihkan.`);
+                    }
+                    this.saveSession();
+                },
+
+                addGold(amount) {
+                    this.session.rpg.gold += amount;
+                    this.addNotification(`🪙 Menemukan +${amount} Koin Emas!`);
+                    this.saveSession();
+                },
+
+                completeQuest(questId) {
+                    const quest = this.session.rpg.dailyQuests.find(q => q.id === questId);
+                    if (quest && !quest.done) {
+                        quest.done = true;
+                        this.addGold(quest.rewardGold);
+                        this.addXP(40);
+                        this.addNotification(`⚔️ Misi Terpecahkan: "${quest.text}"!`);
+                        this.saveSession();
+                    }
+                },
+
+                buyItem(itemId, cost) {
+                    if (this.session.rpg.gold < cost) {
+                        alert("Emas Anda tidak mencukupi untuk melakukan transaksi!");
+                        return;
+                    }
+                    this.session.rpg.gold -= cost;
+                    if (itemId === 'focus_elixir') {
+                        this.session.rpg.activeBuffs.push('focus_elixir');
+                        this.addNotification("🧪 Berhasil meminum Ramuan Fokus! Aktivitas Anda berikutnya mendapatkan pengali 1.5x XP.");
+                    } else if (itemId === 'shield') {
+                        this.session.rpg.hp = 100;
+                        this.addNotification("🛡️ Berhasil membeli Penjaga Shield! Stamina belajar pulih 100%.");
+                    }
+                    this.saveSession();
+                },
+
+                toggleModule(index) {
+                    this.session.rpg.conqueredModules[index] = !this.session.rpg.conqueredModules[index];
+                    if (this.session.rpg.conqueredModules[index]) {
+                        this.addXP(100);
+                        this.addGold(30);
+                        this.addNotification(`🏆 Dungeon Modul ${index + 1} Selesai Dikuasai! +100 XP & +30 Gold!`);
+                    } else {
+                        this.session.rpg.xp = Math.max(0, this.session.rpg.xp - 100);
+                        this.session.rpg.gold = Math.max(0, this.session.rpg.gold - 30);
+                        this.addNotification(`Batal Menyelesaikan Modul ${index + 1}.`);
+                    }
+                    this.saveSession();
+                },
+
+                checkDailyStreak() {
+                    const today = new Date().toDateString();
+                    const lastDate = localStorage.getItem('ut_sq3r_last_study_date');
+                    if (lastDate) {
+                        const diffTime = Math.abs(new Date(today) - new Date(lastDate));
+                        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                        if (diffDays === 1) {
+                            // Streak maintained
+                        } else if (diffDays > 1) {
+                            this.session.rpg.streak = 0; 
+                            this.session.rpg.hp = Math.max(20, this.session.rpg.hp - 30); 
+                            this.addNotification("⚠️ Anda absen belajar kemarin! Pertahanan stamina fokus (HP) berkurang.");
+                        }
+                    }
+                },
+
+                triggerStreakProgression() {
+                    const today = new Date().toDateString();
+                    const lastDate = localStorage.getItem('ut_sq3r_last_study_date');
+                    if (lastDate !== today) {
+                        this.session.rpg.streak += 1;
+                        localStorage.setItem('ut_sq3r_last_study_date', today);
+                        this.addNotification(`🔥 Streak Belajar Berlanjut! Hari ke-${this.session.rpg.streak}.`);
+                        this.saveSession();
+                    }
+                },
+
+                // API ENGINE INTEGRATION & FALLBACKS (WITH RETRIES)
+                async requestAI(systemPrompt, userPrompt, isJson = false) {
+                    if (!this.settings.apiKey) {
+                        alert("Kunci API tidak terkonfigurasi!");
+                        throw new Error("Missing API Key");
+                    }
+
+                    this.isLoading = true;
+                    this.apiStatus = 'loading';
+                    this.apiErrorLog = ''; 
+
+                    const modelsToTry = [this.settings.primaryModel, this.settings.fallbackModel];
+                    let lastException = null;
+
+                    for (let model of modelsToTry) {
+                        try {
+                            this.activeModel = model;
+                            const responseText = await this.retryWithBackoff(async () => {
+                                return await this.fetchAPI(model, systemPrompt, userPrompt, isJson);
+                            });
+                            this.apiStatus = 'success';
+                            this.isLoading = false;
+                            return { text: responseText, model: model };
+                        } catch (e) {
+                            lastException = e;
+                            this.apiStatus = 'fallback';
+                            this.apiErrorLog += `Gagal pada model ${model}: ${e.message}\n`;
+                        }
+                    }
+
+                    this.apiStatus = 'error';
+                    this.isLoading = false;
+                    throw lastException || new Error("Gagal memanggil asisten AI.");
+                },
+
+                async retryWithBackoff(fn, retries = 3, delay = 1000) {
+                    try {
+                        return await fn();
+                    } catch (e) {
+                        if (retries <= 0) throw e;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return this.retryWithBackoff(fn, retries - 1, delay * 2);
+                    }
+                },
+
+                async fetchAPI(model, systemPrompt, userPrompt, isJson) {
+                    const provider = this.settings.provider;
+                    const apiKey = this.settings.apiKey;
+
+                    if (provider === 'gemini') {
+                        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                        const payload = {
+                            contents: [{
+                                parts: [{ text: `${systemPrompt}\n\n${userPrompt}` }]
+                            }],
+                            generationConfig: {
+                                temperature: isJson ? 0.2 : 0.4
+                            }
+                        };
+                        if (isJson) payload.generationConfig.responseMimeType = "application/json";
+
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorDetail = await response.json().catch(() => ({}));
+                            const errMsg = errorDetail.error?.message || `HTTP Error ${response.status}`;
+                            this.apiErrorLog = `Google API Error:\n${JSON.stringify(errorDetail, null, 2)}`;
+                            throw new Error(errMsg);
+                        }
+
+                        const data = await response.json();
+                        if (!data.candidates || data.candidates.length === 0) throw new Error("Format respons kosong.");
+                        return data.candidates[0].content.parts[0].text;
+                    } 
+                    
+                    else if (provider === 'openai' || provider === 'openrouter') {
+                        const url = provider === 'openai' 
+                            ? 'https://api.openai.com/v1/chat/completions' 
+                            : 'https://openrouter.ai/api/v1/chat/completions';
+
+                        const headers = {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        };
+
+                        if (provider === 'openrouter') {
+                            headers['HTTP-Referer'] = window.location.origin;
+                            headers['X-Title'] = 'UT SQ3R Quest Buddy';
+                        }
+
+                        const payload = {
+                            model: model,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: userPrompt }
+                            ],
+                            temperature: isJson ? 0.2 : 0.4
+                        };
+
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const errorDetail = await response.json().catch(() => ({}));
+                            const errMsg = errorDetail.error?.message || `HTTP Error ${response.status}`;
+                            this.apiErrorLog = `Provider Error:\n${JSON.stringify(errorDetail, null, 2)}`;
+                            throw new Error(errMsg);
+                        }
+
+                        const data = await response.json();
+                        return data.choices[0].message.content;
+                    }
+                    throw new Error("Provider tidak didukung.");
+                },
+
+                cleanJsonString(input) {
+                    let cleaned = input.trim();
+                    const match = cleaned.match(/```json\s*([\s\S]*?)\s*```/) || cleaned.match(/```\s*([\s\S]*?)\s*```/);
+                    if (match) cleaned = match[1];
+                    return cleaned.trim();
+                },
+
+                // STEP 1: SURVEY GENERATION
+                async generateSurvey() {
+                    const systemPrompt = "Anda adalah pakar akademik dan tutor pendamping belajar Universitas Terbuka (UT) Indonesia.";
+                    const inputCombined = `Mata Kuliah: ${this.session.courseName}\nBab/Topik: ${this.session.moduleTopic}\nOutline/Syllabus:\n${this.session.outline || "Topik Umum"}`;
+                    const userPrompt = `Tolong buatkan ringkasan modul pembelajaran (Survey) yang terstruktur, jelas, komprehensif, dan memicu pemahaman dari kerangka berikut:
+                    
+"${inputCombined}"
+
+Format ringkasan Anda dengan rapi menggunakan bahasa Indonesia yang ramah, sopan, dan akademis. Gunakan poin-poin yang jelas, tandai konsep kunci dengan huruf tebal, buat sub-heading yang informatif, dan berikan kesimpulan utama.`;
+
+                    try {
+                        const res = await this.requestAI(systemPrompt, userPrompt);
+                        this.session.surveyResult = res.text;
+                        this.session.surveyModel = res.model;
+                        
+                        this.addXP(30);
+                        this.addGold(10);
+                        this.completeQuest(1); 
+                        this.triggerStreakProgression();
+                    } catch (e) {
+                        console.error(e);
+                        alert(`Gagal menganalisis survei bab: ${e.message}`);
+                    }
+                },
+
+                // STEP 2: QUESTION GENERATION
+                async generateQuestions() {
+                    const systemPrompt = "Anda adalah asisten tutorial pembuat pertanyaan penuntun pemahaman draf modul UT.";
+                    const userPrompt = `Berdasarkan ringkasan modul UT berikut:
+
+"${this.session.surveyResult}"
+
+Buatlah 3 hingga 5 pertanyaan kritis berbobot (Metode Question dalam SQ3R) yang mewakili esensi terdalam dari materi tersebut.
+
+Format output wajib berupa format JSON strictly list of objects tanpa ada kata pembuka, penutup, markdown ticks, atau awalan 'json'. Harus bisa langsung diparsing oleh parser JSON.
+Struktur format JSON:
+[
+  {"id": 1, "text": "Pertanyaan pertama...?"},
+  {"id": 2, "text": "Pertanyaan kedua...?"}
+]`;
+
+                    try {
+                        const res = await this.requestAI(systemPrompt, userPrompt, true);
+                        this.session.questionModel = res.model;
+                        
+                        const cleaned = this.cleanJsonString(res.text);
+                        const parsed = JSON.parse(cleaned);
+                        
+                        this.session.questions = parsed.map(item => ({
+                            id: item.id || Math.random(),
+                            text: item.text,
+                            answer: '',
+                            feedback: ''
+                        }));
+
+                        this.addXP(20);
+                        this.addGold(5);
+                    } catch (e) {
+                        console.error(e);
+                        alert(`Gagal merumuskan pertanyaan: ${e.message}`);
+                    }
+                },
+
+                addQuestion() {
+                    this.session.questions.push({
+                        id: Date.now(),
+                        text: "Pertanyaan pemandu baru...?",
+                        answer: '',
+                        feedback: ''
+                    });
+                },
+
+                removeQuestion(index) {
+                    this.session.questions.splice(index, 1);
+                },
+
+                // STEP 3: TIMER & COMBAT ENGINE
+                toggleTimer() {
+                    if (this.timerRunning) {
+                        clearInterval(this.timerInterval);
+                        this.addCombatLog("Permainan dijeda. Demon Prokrastinasi tertawa mengejek!");
+                    } else {
+                        this.addCombatLog("Fokus dinyalakan! Karakter Anda melancarkan tebasan konsentrasi!");
+                        this.timerInterval = setInterval(() => {
+                            if (this.timerSeconds > 0) {
+                                this.timerSeconds--;
+                                
+                                // HP Boss berkurang seiring waktu berjalan
+                                const totalSecs = 1500;
+                                const elapsedPercent = ((totalSecs - this.timerSeconds) / totalSecs) * 100;
+                                this.session.rpg.bossHp = Math.max(0, Math.round(100 - elapsedPercent));
+                                
+                                // Intermittent combat log simulation
+                                if (this.timerSeconds % 300 === 0 && this.timerSeconds > 0) {
+                                    this.addCombatLog("Serangan berlanjut! Konsep demi konsep berhasil ditaklukkan.");
+                                }
+                            } else {
+                                clearInterval(this.timerInterval);
+                                this.timerRunning = false;
+                                this.timerFinished();
+                            }
+                        }, 1000);
+                    }
+                    this.timerRunning = !this.timerRunning;
+                },
+
+                resetTimer() {
+                    clearInterval(this.timerInterval);
+                    this.timerRunning = false;
+                    this.timerSeconds = 1500;
+                    this.session.rpg.bossHp = 100;
+                    this.addCombatLog("Timer diulang. Konsentrasi disiapkan dari awal.");
+                    this.saveSession();
+                },
+
+                formatTime(seconds) {
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    return `${m}:${s}`;
+                },
+
+                addCombatLog(msg) {
+                    const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    this.combatLogs.unshift(`[${time}] ${msg}`);
+                    if (this.combatLogs.length > 20) this.combatLogs.pop();
+                },
+
+                timerFinished() {
+                    this.session.rpg.bossHp = 0;
+                    this.addCombatLog("⚔️ DEMON PROKRASTINASI BERHASIL DIKALAHKAN!");
+                    
+                    this.addXP(100);
+                    this.addGold(25);
+                    this.completeQuest(2); 
+                    this.triggerStreakProgression();
+
+                    alert("🏆 PERTEMPURAN SELESAI! Demon Prokrastinasi berhasil dikalahkan dengan stamina fokus 100%! +25 Gold & +100 XP.");
+                    this.resetTimer();
+                },
+
+                // STEP 4: RECITE EVALUATION
+                async evaluateAnswers() {
+                    this.isLoading = true;
+                    this.apiStatus = 'loading';
+                    this.apiErrorLog = ''; 
+
+                    const systemPrompt = "Anda adalah tutor akademik Universitas Terbuka yang mendalam, interaktif, dan penuh semangat.";
+                    
+                    try {
+                        for (let i = 0; i < this.session.questions.length; i++) {
+                            const q = this.session.questions[i];
+                            if (!q.answer.trim()) {
+                                q.feedback = "Anda belum mengisi lembar jawaban.";
+                                continue;
+                            }
+
+                            // Jeda pengiriman request untuk menghindari limitasi API Key gratis
+                            if (i > 0) await new Promise(resolve => setTimeout(resolve, 1500));
+
+                            const userPrompt = `Materi Survey Rujukan: "${this.session.surveyResult}"
+Pertanyaan Target: "${q.text}"
+Jawaban Mahasiswa: "${q.answer}"
+
+Berikan evaluasi yang membangun atas jawaban mahasiswa di atas:
+1. Tentukan tingkat keakuratan jawaban (Sangat Bagus, Cukup Tepat, atau Perlu Perbaikan).
+2. Koreksi kesalahan nalar secara terstruktur namun tetap ramah.
+3. Berikan 1 analogi dunia nyata yang cerdas untuk mempermudah ingatan konsep ini bagi mahasiswa UT yang sibuk bekerja.`;
+
+                            const resText = await this.retryWithBackoff(async () => {
+                                return await this.fetchAPI(this.settings.primaryModel, systemPrompt, userPrompt, false);
+                            }).catch(async () => {
+                                return await this.fetchAPI(this.settings.fallbackModel, systemPrompt, userPrompt, false);
+                            });
+
+                            q.feedback = resText;
+                        }
+                        this.session.reciteModel = this.settings.primaryModel;
+                        this.apiStatus = 'success';
+
+                        this.addXP(50);
+                        this.addGold(15);
+                        this.triggerStreakProgression();
+                    } catch (e) {
+                        this.apiStatus = 'error';
+                        alert(`Gagal mengevaluasi jawaban: ${e.message}`);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                },
+
+                // STEP 5: REVIEW QUIZ GENERATION
+                async generateQuiz() {
+                    const systemPrompt = "Anda adalah instruktur ahli penyusun soal kuis standar HOTS untuk Universitas Terbuka.";
+                    const userPrompt = `Materi Survey Rujukan: "${this.session.surveyResult}"
+Catatan Membaca Mahasiswa: "${this.session.readingNotes || 'Tidak ada catatan tambahan.'}"
+
+Berdasarkan materi rujukan di atas, susunlah kuis evaluasi yang terdiri dari 3 (tiga) butir soal pilihan ganda standar berpikir tingkat tinggi (HOTS).
+Setiap soal wajib memiliki 4 opsi jawaban (A, B, C, D) dan kunci indeks jawaban yang benar (0 untuk A, 1 untuk B, 2 untuk C, 3 untuk D).
+
+Format output wajib berupa format JSON strictly list of objects tanpa ada kata pembuka, penutup, markdown ticks, atau awalan 'json'. Harus bisa langsung diparsing oleh parser JSON.
+Struktur format JSON:
+[
+  {
+    "id": 1,
+    "question": "Pertanyaan kasus/kontekstual?",
+    "options": ["Pilihan A...", "Pilihan B...", "Pilihan C...", "Pilihan D..."],
+    "correctAnswerIdx": 0,
+    "explanation": "Penjelasan ilmiah pendukung jawaban benar."
+  }
+]`;
+
+                    try {
+                        const res = await this.requestAI(systemPrompt, userPrompt, true);
+                        this.session.quizModel = res.model;
+                        
+                        const cleaned = this.cleanJsonString(res.text);
+                        const parsed = JSON.parse(cleaned);
+
+                        this.session.quiz = parsed.map(item => ({
+                            id: item.id || Math.random(),
+                            question: item.question,
+                            options: item.options,
+                            correctAnswerIdx: item.correctAnswerIdx,
+                            selectedAnswer: null,
+                            explanation: item.explanation || "Konsep terkait materi draf modul."
+                        }));
+                    } catch (e) {
+                        console.error(e);
+                        alert(`Gagal menyusun kuis cerdas: ${e.message}`);
+                    }
+                },
+
+                selectQuizOption(qIdx, oIdx) {
+                    this.session.quiz[qIdx].selectedAnswer = oIdx;
+                    this.saveSession();
+
+                    const q = this.session.quiz[qIdx];
+                    if (oIdx === q.correctAnswerIdx) {
+                        this.addXP(20);
+                        this.addGold(5);
+                    } else {
+                        this.session.rpg.hp = Math.max(10, this.session.rpg.hp - 10);
+                        this.addNotification("💥 Jawaban Salah! Shield Konsentrasi berkurang 10.");
+                    }
+
+                    const allAnswered = this.session.quiz.every(item => item.selectedAnswer !== null);
+                    if (allAnswered) {
+                        this.completeQuest(3); 
+                        this.triggerStreakProgression();
+                    }
+                },
+
+                quizOptionClass(q, oIdx) {
+                    if (q.selectedAnswer === null) {
+                        return 'border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900/40 hover:border-slate-350 bg-white dark:bg-slate-900';
+                    }
+                    if (oIdx === q.correctAnswerIdx) {
+                        return 'bg-green-500/10 border-green-500 text-green-700 dark:text-green-400 font-extrabold';
+                    }
+                    if (q.selectedAnswer === oIdx && oIdx !== q.correctAnswerIdx) {
+                        return 'bg-rose-500/10 border-rose-500 text-rose-700 dark:text-rose-400';
+                    }
+                    return 'bg-slate-100/40 dark:bg-slate-900/20 border-slate-200/50 dark:border-slate-800/50 text-slate-400 cursor-not-allowed';
+                },
+
+                calculateQuizScore() {
+                    let correctCount = 0;
+                    const answered = this.session.quiz.filter(q => q.selectedAnswer !== null);
+                    if (answered.length === 0) return 0;
+                    
+                    answered.forEach(q => {
+                        if (q.selectedAnswer === q.correctAnswerIdx) correctCount++;
+                    });
+                    return Math.round((correctCount / this.session.quiz.length) * 100);
+                },
+
+                // EXPORT SYSTEM & REPORT COMPILATION (MOBILE OPTIMIZED RENDERING)
+                exportToHtml() {
+                    const escapeHtml = (str) => {
+                        if (!str) return '';
+                        return str.toString()
+                            .replace(/&/g, '&amp;')
+                            .replace(/</g, '&lt;')
+                            .replace(/>/g, '&gt;')
+                            .replace(/"/g, '&quot;')
+                            .replace(/'/g, '&#039;');
+                    };
+
+                    const title = `Laporan Belajar SQ3R: ${this.session.courseName || 'Mata Kuliah'} - ${this.session.moduleTopic || 'Topik'}`;
+                    
+                    const questionsHtml = this.session.questions.map((q, idx) => `
+                        <div class="card">
+                            <h3>Pertanyaan ${idx + 1}: ${escapeHtml(q.text)}</h3>
+                            <div class="user-answer">
+                                <strong>Jawaban Anda:</strong><br>
+                                <p style="white-space: pre-wrap; margin-top: 5px;">${escapeHtml(q.answer || 'Belum diisi.')}</p>
+                            </div>
+                            ${q.feedback ? `
+                            <div class="feedback">
+                                <strong>Feedback Tutor AI:</strong><br>
+                                <div style="margin-top: 5px;">${marked.parse(q.feedback)}</div>
+                            </div>` : ''}
+                        </div>
+                    `).join('');
+
+                    const quizHtml = this.session.quiz.map((q, idx) => `
+                        <div class="card">
+                            <h3>Soal ${idx + 1}: ${escapeHtml(q.question)}</h3>
+                            <ul style="list-style-type: none; padding-left: 0; margin: 10px 0 0 0;">
+                                ${q.options.map((o, oIdx) => {
+                                    let style = 'padding: 8px 12px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e2e8f0; font-size: 0.9em;';
+                                    if (oIdx === q.correctAnswerIdx) {
+                                        style += ' background: #f0fdf4; border-color: #bbf7d0; color: #166534; font-weight: bold;';
+                                    } else if (q.selectedAnswer === oIdx && oIdx !== q.correctAnswerIdx) {
+                                        style += ' background: #fef2f2; border-color: #fca5a5; color: #991b1b; text-decoration: line-through;';
+                                    }
+                                    return `<li style="${style}">${String.fromCharCode(65 + oIdx)}. ${escapeHtml(o)}</li>`;
+                                }).join('')}
+                            </ul>
+                            <p style="margin-top: 8px; font-size: 0.85em;">
+                                <strong>Status Jawaban:</strong> 
+                                ${q.selectedAnswer === q.correctAnswerIdx ? '<span style="color: #166534; font-weight: bold;">Benar</span>' : '<span style="color: #991b1b; font-weight: bold;">Salah</span>'}
+                            </p>
+                            ${q.explanation ? `<div style="font-size: 0.85em; background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 3px solid #64748b; margin-top: 10px;"><strong>Penjelasan:</strong> ${marked.parse(q.explanation)}</div>` : ''}
+                        </div>
+                    `).join('');
+
+                    const finalScore = this.calculateQuizScore();
+
+                    const htmlContent = `
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <style>
+        body { 
+            font-family: 'Georgia', serif; 
+            line-height: 1.6; 
+            color: #334155; 
+            max-width: 800px; 
+            margin: 20px auto; 
+            padding: 15px; 
+            background: #fcfbf9; 
+        }
+        h1, h2, h3 { color: #1e3a8a; font-family: system-ui, -apple-system, sans-serif; margin-top: 0; margin-bottom: 8px; }
+        h1 { font-size: 1.8em; }
+        h2 { font-size: 1.3em; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; margin-bottom: 15px; }
+        h3 { font-size: 1.05em; }
+        
+        .header-meta { 
+            margin-bottom: 25px; 
+            border-bottom: 3px double #1e3a8a; 
+            padding-bottom: 15px; 
+            text-align: center; 
+        }
+        .header-meta p { 
+            font-size: 0.85em; 
+            color: #64748b; 
+            margin: 5px 0 0 0; 
+            font-family: system-ui, -apple-system, sans-serif; 
+        }
+        
+        .section { 
+            margin-bottom: 25px; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 12px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            border: 1px solid #e2e8f0; 
+        }
+        
+        .card { 
+            border-left: 3px solid #1e3a8a; 
+            padding: 12px 15px; 
+            margin-bottom: 15px; 
+            background: #fafaf9; 
+            border-radius: 6px; 
+        }
+        
+        .user-answer { 
+            margin-top: 10px; 
+            background: #fff; 
+            padding: 10px 12px; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 6px; 
+            font-size: 0.9em; 
+        }
+        
+        .feedback { 
+            margin-top: 10px; 
+            background: #f0fdf4; 
+            padding: 10px 12px; 
+            border: 1px solid #bbf7d0; 
+            border-radius: 6px; 
+            color: #166534; 
+            font-size: 0.9em; 
+        }
+        
+        .notes-area { 
+            white-space: pre-wrap; 
+            font-family: 'Georgia', serif; 
+            padding: 12px; 
+            background: #fffdf5; 
+            border: 1px solid #e9dfc6; 
+            border-radius: 6px; 
+            font-size: 0.9em; 
+        }
+        
+        .score-badge { 
+            display: inline-block; 
+            background: #1e3a8a; 
+            color: white; 
+            padding: 4px 10px; 
+            border-radius: 9999px; 
+            font-size: 0.8em; 
+            font-family: system-ui, -apple-system, sans-serif; 
+            font-weight: bold;
+        }
+        
+        .review-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 15px; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+        }
+
+        /* Responsive Mobile Layout Adjustments */
+        @media (max-width: 600px) {
+            body { 
+                margin: 10px auto; 
+                padding: 10px; 
+            }
+            .section { 
+                padding: 15px; 
+                margin-bottom: 20px; 
+            }
+            .card { 
+                padding: 10px 12px; 
+                margin-bottom: 12px; 
+            }
+            h1 { font-size: 1.45em; }
+            h2 { font-size: 1.15em; }
+            h3 { font-size: 0.95em; }
+            .header-meta h1 { font-size: 1.5em !important; }
+            .header-meta h2 { font-size: 1.1em !important; }
+            .user-answer, .feedback, .notes-area {
+                font-size: 0.85em;
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-meta">
+        <h1 style="margin: 0; font-size: 2em;">${escapeHtml(this.session.courseName || 'Mata Kuliah')}</h1>
+        <h2 style="margin: 8px 0 0 0; font-size: 1.25em; color: #475569;">Topik: ${escapeHtml(this.session.moduleTopic || 'Modul Belajar')}</h2>
+        <p>Laporan Hasil Sesi Belajar Mandiri Terstruktur (Metode SQ3R) &bull; Universitas Terbuka</p>
+    </div>
+    
+    <div class="section">
+        <h2>1. Survey (Rangkuman Pembelajaran)</h2>
+        <div style="font-size: 0.9em; line-height: 1.7;">${marked.parse(this.session.surveyResult || 'Langkah ini dilewati.')}</div>
+    </div>
+
+    <div class="section">
+        <h2>2. Tanya & Jawab (Question & Recite)</h2>
+        ${questionsHtml || '<p style="color: #94a3b8; font-size: 0.9em;">Tidak ada daftar pertanyaan yang dibuat.</p>'}
+    </div>
+
+    <div class="section">
+        <h2>3. Catatan Membaca Mandiri (Read)</h2>
+        <div class="notes-area">${escapeHtml(this.session.readingNotes || 'Tidak ada catatan tambahan.')}</div>
+    </div>
+
+    <div class="section">
+        <div class="review-header">
+            <h2 style="margin: 0; border: none; padding: 0;">4. Hasil Uji Mandiri (Review)</h2>
+            <span class="score-badge">Skor Kuis: ${finalScore}/100</span>
+        </div>
+        ${quizHtml || '<p style="color: #94a3b8; font-size: 0.9em;">Kuis mandiri belum dikerjakan.</p>'}
+    </div>
+</body>
+</html>`;
+
+                    const blob = new Blob([htmlContent], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `Laporan_SQ3R_${(this.session.moduleTopic || 'Materi_UT').replace(/\s+/g, '_')}.html`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                },
+
+                resetSession() {
+                    if (confirm("Apakah Anda yakin ingin menghapus semua progres belajar sesi ini?")) {
+                        const originalClass = this.session.rpg.charClass;
+                        const originalLevel = this.session.rpg.level;
+                        const originalGold = this.session.rpg.gold;
+                        const originalStreak = this.session.rpg.streak;
+                        const originalModules = this.session.rpg.conqueredModules;
+                        
+                        this.session = {
+                            courseName: '',
+                            moduleTopic: '',
+                            outline: '',
+                            surveyResult: '',
+                            surveyModel: '',
+                            questions: [],
+                            questionModel: '',
+                            readingNotes: '',
+                            reciteModel: '',
+                            quiz: [],
+                            quizModel: '',
+                            rpg: {
+                                charClass: originalClass,
+                                level: originalLevel,
+                                xp: 0,
+                                gold: originalGold,
+                                streak: originalStreak,
+                                hp: 100,
+                                maxHp: 100,
+                                inventory: [],
+                                conqueredModules: originalModules,
+                                bossHp: 100,
+                                dailyQuests: [
+                                    { id: 1, text: "Gali Informasi lewat Survey (S)", rewardGold: 15, done: false },
+                                    { id: 2, text: "Fokus Membaca lewat Pomodoro (R1)", rewardGold: 25, done: false },
+                                    { id: 3, text: "Taklukkan Kuis HOTS (R3)", rewardGold: 20, done: false }
+                                ],
+                                activeBuffs: [],
+                            }
+                        };
+                        this.currentStep = 1;
+                        this.resetTimer();
+                    }
+                },
+
+                async testAPIConnection() {
+                    this.testingAPI = true;
+                    const systemPrompt = "Uji konektivitas.";
+                    const userPrompt = "Balas hanya dengan kata: 'READY'";
+                    try {
+                        const res = await this.fetchAPI(this.settings.primaryModel, systemPrompt, userPrompt, false);
+                        if (res && res.includes('READY')) {
+                            alert(`Berhasil terhubung ke model ${this.settings.primaryModel}!`);
+                        } else {
+                            alert(`Terhubung, tetapi mendapatkan respon tidak terduga.`);
+                        }
+                    } catch (e) {
+                        alert(`Uji koneksi gagal: ${e.message}\nPastikan model terpilih aktif.`);
+                    } finally {
+                        this.testingAPI = false;
+                    }
+                },
+
+                renderMarkdown(text) {
+                    if (!text) return '';
+                    return marked.parse(text);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
